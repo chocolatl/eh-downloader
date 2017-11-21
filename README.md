@@ -2,7 +2,7 @@
 
 ## 使用方式
 
-执行：`node download <url> <path>`
+执行：`node ./download <url> <path>`
 
 参数:
 
