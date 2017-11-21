@@ -47,11 +47,11 @@ function downloadOne(currentURL, dir, fileName) {
                 return downloadOne(reloadURL, dir, fileName);
 
             } else {
-                return Promise.reject(new Error(`${fileName} Download Failed.`));
+                throw new Error(`${fileName} Download Failed.`);
             }
 
         }).then(_ => {
-            return Promise.resolve(nextURL);
+            return nextURL;
         }); 
     });
 }
