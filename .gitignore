@@ -4,3 +4,6 @@ npm-debug.log*
 
 # Dependency directories
 node_modules/
+
+.vscode/
+test.js
