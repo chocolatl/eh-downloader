@@ -12,17 +12,17 @@ const {JSDOM} = jsdom;
 // 准备考虑不使用JSDOM.fromURL，使用其它方法获取HTML文本，再使用JSDOM解析
 
 
-function getImagePageInfo(pageURL) {
+function getImagePageInfo(imagePageURL) {
 
     let options = {};
     
-    return JSDOM.fromURL(pageURL, options).then(({window: {document}}) => {
+    return JSDOM.fromURL(imagePageURL, options).then(({window: {document}}) => {
         let imageEl  = document.getElementById('img');
         let imageURL = imageEl.src;
         let nextURL  = imageEl.parentElement.href;
 
         let onfailReloadCode = /onclick=\"return nl\('(.*)'\)\"/.exec(document.getElementById('loadfail').outerHTML)[1];
-        let reloadURL        = pageURL + (pageURL.indexOf('?') > -1 ? '&' : '?') + 'nl=' + onfailReloadCode;
+        let reloadURL        = imagePageURL + (imagePageURL.indexOf('?') > -1 ? '&' : '?') + 'nl=' + onfailReloadCode;
 
         return {
             imageURL, nextURL, reloadURL
