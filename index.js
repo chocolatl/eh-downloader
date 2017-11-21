@@ -12,6 +12,46 @@ const {JSDOM} = jsdom;
 // 准备考虑不使用JSDOM.fromURL，使用其它方法获取HTML文本，再使用JSDOM解析
 
 
+function getAllImagePageLink(detailsPageURL) {
+
+    // 防止URL带上页数的参数,以确保是详情页的第一页
+    detailsPageURL = detailsPageURL.split('?')[0];
+
+    let options = {};
+    
+    return JSDOM.fromURL(detailsPageURL, options).then(({window: {document}}) => {
+
+        let pageNavigationLinks = document.querySelector('.gtb').querySelectorAll('a');
+
+            pageNavigationLinks = Array.from(pageNavigationLinks).map(el => el.href);
+
+            pageNavigationLinks = pageNavigationLinks.length === 1 ? 
+                                  pageNavigationLinks : 
+                                  pageNavigationLinks.slice(0, -1);     // 去除最后一个链接（下一页箭头的链接）
+
+            pageNavigationLinks = pageNavigationLinks.map(link => {
+                
+                return JSDOM.fromURL(link, options).then(({window: {document}}) => {
+
+                    let imagePageLinks = document.querySelectorAll('#gdt > .gdtm a');
+                        imagePageLinks = Array.from(imagePageLinks).map(el => el.href);
+
+                    return imagePageLinks;
+                });
+                
+            });
+
+        return Promise.all(pageNavigationLinks).then(results => {
+
+            let imagePages = [];
+
+            results.forEach(arr => imagePages.push(...arr));
+
+            return imagePages;
+        });
+    });
+}
+
 function getImagePageInfo(imagePageURL) {
 
     let options = {};
@@ -31,67 +71,55 @@ function getImagePageInfo(imagePageURL) {
     });
 }
 
-function downloadOne(currentURL, dir, fileName) {
-
-    return getImagePageInfo(currentURL).then(({imageURL, nextURL, reloadURL}) => {
+function downloadIamge(imagePageURL, saveDir, fileName) {
+    
+    return getImagePageInfo(imagePageURL).then(({imageURL, reloadURL}) => {
         
-        return download(imageURL, dir, {retries: 0, filename: fileName}).catch(err => {
-            
+        return download(imageURL, saveDir, {retries: 0, filename: fileName}).catch(err => {
             
             // 每次重试URL长度会增加，当长度到128以上停止重试，抛出错误
-            if(currentURL.length < 128) {
+            if(imagePageURL.length < 128) {
                 
                 console.log(err);
 
                 // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
-                return downloadOne(reloadURL, dir, fileName);
+                return downloadIamge(reloadURL, saveDir, fileName);
 
             } else {
                 throw new Error(`${fileName} Download Failed.`);
             }
-
-        }).then(_ => {
-            return nextURL;
-        }); 
+        });
     });
 }
 
-function downloadAll(currentURL, dir, _count = 0) {
+function downloadAll(detailsPageURL, saveDir) {
 
-    let fileName = _count + '.jpg';
-    
-    return downloadOne(currentURL, dir, fileName).then(nextURL => {
+    async function autoDownlaod(links) {
 
-        console.log(`${fileName} Downloaded Successfully.`);
+        for(let e of links.entries()) {
 
-        if(new URL(nextURL).pathname !== new URL(currentURL).pathname) {
-            return downloadAll(nextURL, dir, ++_count);
-        } else {
-            return Promise.resolve();
+            let index = e[0], link = e[1];
+
+            await downloadIamge(link, saveDir, index + '.jpg');
         }
+    }
 
+    return getAllImagePageLink(detailsPageURL).then(links => {
+        return autoDownlaod(links);
     });
 }
 
-
-function downloadDoujinshi(url, dir) {
+function downloadDoujinshi(detailsPageURL, saveDir) {
 
     try {
-        if(fs.existsSync(dir) === false) {
-            fs.mkdirSync(dir);
+        if(fs.existsSync(saveDir) === false) {
+            fs.mkdirSync(saveDir);
         }
     } catch (err) {
         return Promise.reject(err);
     }
 
-    let options = {};
-
-    return JSDOM.fromURL(url, options).then(({window: {document}}) => {
-        
-        let firstURL = document.querySelector('#gdt .gdtm:first-of-type a').href;
-
-        return downloadAll(firstURL, dir);
-    });
+    return downloadAll(detailsPageURL, saveDir);
 }
 
 module.exports = {
