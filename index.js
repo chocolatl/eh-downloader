@@ -17,9 +17,7 @@ function getAllImagePageLink(detailsPageURL) {
     // 防止URL带上页数的参数,以确保是详情页的第一页
     detailsPageURL = detailsPageURL.split('?')[0];
 
-    let options = {};
-    
-    return JSDOM.fromURL(detailsPageURL, options).then(({window: {document}}) => {
+    return JSDOM.fromURL(detailsPageURL).then(({window: {document}}) => {
 
         let pageNavigationLinks = document.querySelector('.gtb').querySelectorAll('a');
 
@@ -31,7 +29,7 @@ function getAllImagePageLink(detailsPageURL) {
 
             pageNavigationLinks = pageNavigationLinks.map(link => {
                 
-                return JSDOM.fromURL(link, options).then(({window: {document}}) => {
+                return JSDOM.fromURL(link).then(({window: {document}}) => {
 
                     let imagePageLinks = document.querySelectorAll('#gdt > .gdtm a');
                         imagePageLinks = Array.from(imagePageLinks).map(el => el.href);
@@ -54,9 +52,7 @@ function getAllImagePageLink(detailsPageURL) {
 
 function getImagePageInfo(imagePageURL) {
 
-    let options = {};
-    
-    return JSDOM.fromURL(imagePageURL, options).then(({window: {document}}) => {
+    return JSDOM.fromURL(imagePageURL).then(({window: {document}}) => {
         let imageEl  = document.getElementById('img');
         let imageURL = imageEl.src;
         let nextURL  = imageEl.parentElement.href;
