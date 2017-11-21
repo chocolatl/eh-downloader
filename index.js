@@ -11,26 +11,32 @@ const {JSDOM} = jsdom;
 // TODO JSDOM.fromURL有些情况下会一直处于pending状态不返回resolve/reject，导致永久挂起
 // 准备考虑不使用JSDOM.fromURL，使用其它方法获取HTML文本，再使用JSDOM解析
 
-function downloadOne(currentURL, dir, fileName) {
+
+function getImagePageInfo(pageURL) {
+
     let options = {};
     
-    return JSDOM.fromURL(currentURL, options).then(({window: {document}}) => {
+    return JSDOM.fromURL(pageURL, options).then(({window: {document}}) => {
         let imageEl  = document.getElementById('img');
         let imageURL = imageEl.src;
         let nextURL  = imageEl.parentElement.href;
 
-        let failReloadCode = /onclick=\"return nl\('(.*)'\)\"/.exec(document.getElementById('loadfail').outerHTML)[1];
-        
+        let onfailReloadCode = /onclick=\"return nl\('(.*)'\)\"/.exec(document.getElementById('loadfail').outerHTML)[1];
+        let reloadURL        = pageURL + (pageURL.indexOf('?') > -1 ? '&' : '?') + 'nl=' + onfailReloadCode;
+
         return {
-            imageURL, nextURL, failReloadCode
+            imageURL, nextURL, reloadURL
         };
 
-    }).then(({imageURL, nextURL, failReloadCode}) => {
+    });
+}
+
+function downloadOne(currentURL, dir, fileName) {
+
+    return getImagePageInfo(currentURL).then(({imageURL, nextURL, reloadURL}) => {
         
         return download(imageURL, dir, {retries: 0, filename: fileName}).catch(err => {
-                
             
-            let nl = a => currentURL + (currentURL.indexOf('?') > -1 ? '&' : '?') + 'nl=' + a;
             
             // 每次重试URL长度会增加，当长度到128以上停止重试，抛出错误
             if(currentURL.length < 128) {
@@ -38,7 +44,7 @@ function downloadOne(currentURL, dir, fileName) {
                 console.log(err);
 
                 // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
-                return downloadOne(nl(failReloadCode), dir, fileName);
+                return downloadOne(reloadURL, dir, fileName);
 
             } else {
                 return Promise.reject(new Error(`${fileName} Download Failed.`));
