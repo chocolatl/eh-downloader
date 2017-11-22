@@ -88,15 +88,27 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
     });
 }
 
-function downloadAll(detailsPageURL, saveDir) {
+function downloadAll(detailsPageURL, saveDir, threads = 3) {
 
     async function autoDownlaod(links) {
 
-        for(let e of links.entries()) {
+        let indexWithLinks = [...links.entries()];
+        let indexWithLinksGroup = [];
 
-            let index = e[0], link = e[1];
+        while(indexWithLinks.length > 0) {
 
-            await downloadIamge(link, saveDir, index + '.jpg');
+            let slice = indexWithLinks.splice(0, threads);
+            indexWithLinksGroup.push(slice);
+        }
+
+        for(let es of indexWithLinksGroup) {
+
+            let promises = es.map(e => {
+                let index = e[0], url = e[1];
+                return downloadIamge(url, saveDir, index + '.jpg')
+            });
+
+            await Promise.all(promises);
         }
     }
 
@@ -105,7 +117,7 @@ function downloadAll(detailsPageURL, saveDir) {
     });
 }
 
-function downloadDoujinshi(detailsPageURL, saveDir) {
+function downloadDoujinshi(detailsPageURL, saveDir, threads = undefined) {
 
     try {
         if(fs.existsSync(saveDir) === false) {
@@ -115,7 +127,7 @@ function downloadDoujinshi(detailsPageURL, saveDir) {
         return Promise.reject(err);
     }
 
-    return downloadAll(detailsPageURL, saveDir);
+    return downloadAll(detailsPageURL, saveDir, threads);
 }
 
 module.exports = {
