@@ -57,8 +57,8 @@ function getImagePageInfo(imagePageURL) {
         let imageURL = imageEl.src;
         let nextURL  = imageEl.parentElement.href;
 
-        let onfailReloadCode = /onclick=\"return nl\('(.*)'\)\"/.exec(document.getElementById('loadfail').outerHTML)[1];
-        let reloadURL        = imagePageURL + (imagePageURL.indexOf('?') > -1 ? '&' : '?') + 'nl=' + onfailReloadCode;
+        let reloadCode = /onclick=\"return nl\('(.*)'\)\"/.exec(document.getElementById('loadfail').outerHTML)[1];
+        let reloadURL  = imagePageURL + (imagePageURL.indexOf('?') > -1 ? '&' : '?') + 'nl=' + reloadCode;
 
         return {
             imageURL, nextURL, reloadURL
@@ -73,8 +73,8 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
         
         return download(imageURL, saveDir, {retries: 0, filename: fileName}).catch(err => {
             
-            // 每次重试URL长度会增加，当长度到128以上停止重试，抛出错误
-            if(imagePageURL.length < 128) {
+            // 还没有点击重试链接
+            if(imagePageURL.includes('nl=') === false) {
                 
                 console.log(err);
 
