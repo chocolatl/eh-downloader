@@ -71,7 +71,11 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
     
     return getImagePageInfo(imagePageURL).then(({imageURL, reloadURL}) => {
         
-        return download(imageURL, saveDir, {retries: 0, filename: fileName}).catch(err => {
+        return download(imageURL, saveDir, {retries: 0, filename: fileName}).then(_ => {
+
+            console.log(`${fileName} Download Successful.`);
+            
+        }).catch(err => {
             
             // 还没有点击重试链接
             if(imagePageURL.includes('nl=') === false) {
