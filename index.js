@@ -6,18 +6,36 @@ const {URL} = require('url');
 const download = require('download');
 const jsdom = require("jsdom");
 const {JSDOM} = jsdom;
+const request = require('request');
 
 
-// TODO JSDOM.fromURL有些情况下会一直处于pending状态不返回resolve/reject，导致永久挂起
-// 准备考虑不使用JSDOM.fromURL，使用其它方法获取HTML文本，再使用JSDOM解析
+function requestHTML(url, userOptions) {
 
+    return new Promise(function(resolve, reject) {
+        let options = Object.assign({url: url, timeout: 12000}, userOptions);
+
+        let rq = request(options, function(err, response, body) {
+
+            if(err) return reject(err);
+
+            if(response.statusCode !== 200) {
+                return reject(new Error(`Response Error. HTTP Status Code: ${response.statusCode}.`));
+            }
+
+            return resolve(body);
+        });
+
+    });
+}
 
 function getAllImagePageLink(detailsPageURL) {
 
     // 防止URL带上页数的参数,以确保是详情页的第一页
     detailsPageURL = detailsPageURL.split('?')[0];
 
-    return JSDOM.fromURL(detailsPageURL).then(({window: {document}}) => {
+    return requestHTML(detailsPageURL).then(html => {
+
+        let {window: {document}} = new JSDOM(html);
 
         let pageNavigationLinks = document.querySelector('.gtb').querySelectorAll('a');
 
@@ -29,7 +47,9 @@ function getAllImagePageLink(detailsPageURL) {
 
             pageNavigationLinks = pageNavigationLinks.map(link => {
                 
-                return JSDOM.fromURL(link).then(({window: {document}}) => {
+                return requestHTML(link).then(html => {
+
+                    let {window: {document}} = new JSDOM(html);
 
                     let imagePageLinks = document.querySelectorAll('#gdt > .gdtm a');
                         imagePageLinks = Array.from(imagePageLinks).map(el => el.href);
@@ -52,7 +72,10 @@ function getAllImagePageLink(detailsPageURL) {
 
 function getImagePageInfo(imagePageURL) {
 
-    return JSDOM.fromURL(imagePageURL).then(({window: {document}}) => {
+    return requestHTML(imagePageURL).then(html => {
+
+        let {window: {document}} = new JSDOM(html);
+        
         let imageEl  = document.getElementById('img');
         let imageURL = imageEl.src;
         let nextURL  = imageEl.parentElement.href;

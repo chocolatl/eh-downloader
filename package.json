@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "download": "^6.2.5",
-    "jsdom": "^11.3.0"
+    "jsdom": "^11.3.0",
+    "request": "^2.83.0"
   }
 }
