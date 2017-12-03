@@ -3,8 +3,20 @@ const {downloadDoujinshi} = require('./index.js');
 let durl  = process.argv[2];
 let dpath = process.argv[3];
 
-downloadDoujinshi(durl, dpath).then(_ => {
-    console.info('Download Complete!');
-}).catch(err => {
+let ev = downloadDoujinshi(durl, dpath);
+
+ev.on('download', fileName => {
+    console.log(`${fileName} Download Successful.`);
+});
+
+ev.on('progress', (current, length) => {
+    console.log(`Download Progress: ${current} / ${length}`);
+});
+
+ev.on('done', _ => {
+    console.log('done');
+});
+
+ev.on('error', err => {
     console.error(err);
 });

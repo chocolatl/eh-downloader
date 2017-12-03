@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const {URL} = require('url');
+const EventEmitter = require('events');
 
 const download = require('download');
 const jsdom = require("jsdom");
@@ -96,14 +97,12 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
         
         return download(imageURL, saveDir, {retries: 0, filename: fileName}).then(_ => {
 
-            console.log(`${fileName} Download Successful.`);
+            // console.log(`${fileName} Download Successful.`);
             
         }).catch(err => {
             
             // 还没有点击重试链接
             if(imagePageURL.includes('nl=') === false) {
-                
-                console.log(err);
 
                 // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
                 return downloadIamge(reloadURL, saveDir, fileName);
@@ -117,8 +116,11 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
 
 function downloadAll(detailsPageURL, saveDir, threads = 3) {
 
+    let evo = new EventEmitter();
+
     async function autoDownlaod(links) {
 
+        let length = links.length, downloaded = 0;
         let indexWithLinks = [...links.entries()];
         let indexWithLinksGroup = [];
 
@@ -131,17 +133,26 @@ function downloadAll(detailsPageURL, saveDir, threads = 3) {
         for(let es of indexWithLinksGroup) {
 
             let promises = es.map(e => {
-                let index = e[0], url = e[1];
-                return downloadIamge(url, saveDir, index + '.jpg')
+                let index = e[0], url = e[1], fileName = index + '.jpg';
+                return downloadIamge(url, saveDir, fileName).then(_ => {
+                    evo.emit('download', fileName);
+                    evo.emit('progress', ++downloaded, links.length);
+                });
             });
 
             await Promise.all(promises);
         }
     }
 
-    return getAllImagePageLink(detailsPageURL).then(links => {
+    getAllImagePageLink(detailsPageURL).then(links => {
         return autoDownlaod(links);
+    }).then(_ => {
+        evo.emit('done');
+    }).catch(err => {
+        evo.emit('error', err);
     });
+
+    return evo;
 }
 
 function downloadDoujinshi(detailsPageURL, saveDir, threads = undefined) {
