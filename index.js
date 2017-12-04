@@ -4,11 +4,39 @@ const http = require('http');
 const {URL} = require('url');
 const EventEmitter = require('events');
 
-const download = require('download');
+// const download = require('download');
 const jsdom = require("jsdom");
 const {JSDOM} = jsdom;
 const request = require('request');
 
+
+function downloadFile(url, path) {
+
+    return new Promise(function(resolve, reject) {
+        let stream          = fs.createWriteStream(path);
+        let streamFinished  = false;
+        let donwloadTimeout = 100000;
+
+        // 此处的timeout为等待服务器响应的时间
+        request.get(url, {}).on('error', function(err) {
+            return reject(err);
+        }).pipe(stream);
+    
+        stream.on('error', function(err) {
+            return reject(err);
+        });
+    
+        stream.on('finish', function() {
+            streamFinished = true;
+            return resolve();
+        });
+
+        // 到达等待时间下载未完成，销毁可写流并发出错误事件
+        setTimeout(function() {
+            streamFinished === false && stream.destroy(new Error('Download Timeout.'));
+        }, donwloadTimeout);
+    });
+}
 
 function requestHTML(url, userOptions) {
 
@@ -95,12 +123,12 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
     
     return getImagePageInfo(imagePageURL).then(({imageURL, reloadURL}) => {
         
-        return download(imageURL, saveDir, {retries: 0, filename: fileName}).then(_ => {
+        return downloadFile(imageURL, path.join(saveDir, fileName)).then(_ => {
 
             // console.log(`${fileName} Download Successful.`);
             
         }).catch(err => {
-            
+
             // 还没有点击重试链接
             if(imagePageURL.includes('nl=') === false) {
 
@@ -108,7 +136,7 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
                 return downloadIamge(reloadURL, saveDir, fileName);
 
             } else {
-                throw new Error(`${fileName} Download Failed.`);
+                throw new Error(`${fileName} Download Failed. ${err.message}`);
             }
         });
     });
