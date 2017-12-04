@@ -10,11 +10,15 @@ ev.on('download', fileName => {
 });
 
 ev.on('progress', (current, length) => {
-    console.log(`Download Progress: ${current} / ${length}`);
+    console.log(`Download Progress: ${current} / ${length}.`);
 });
 
 ev.on('done', _ => {
-    console.log('done');
+    console.log('done.');
+});
+
+ev.on('fail', (fileName, err) => {
+    console.log(fileName, err);
 });
 
 ev.on('error', err => {
