@@ -182,39 +182,47 @@ function downloadAll(detailsPageURL, saveDir, threads = 3) {
 
     let evo = new EventEmitter();
 
-    async function autoDownlaod(links) {
+    function autoDownload(links) {
 
-        let length = links.length, downloaded = 0;
-        let indexWithLinks = [...links.entries()];
-        let indexWithLinksGroup = [];
+        let indexedLinks = [...links.entries()];
+        let processed = 0;
 
-        while(indexWithLinks.length > 0) {
-
-            let slice = indexWithLinks.splice(0, threads);
-            indexWithLinksGroup.push(slice);
+        for(let i = 0; i < threads; i++) {
+            downloadOne();
         }
 
-        for(let es of indexWithLinksGroup) {
+        function downloadOne() {
 
-            let promises = es.map(e => {
-                let index = e[0], url = e[1], fileName = index + '.jpg';
-                return downloadIamge(url, saveDir, fileName).then(_ => {
-                    evo.emit('download', fileName);
-                    evo.emit('progress', ++downloaded, links.length);
-                });
+            if(indexedLinks.length === 0) return;
+            
+            let [index, url] = indexedLinks.shift();
+            let fileName = index + '.jpg';
+    
+            function handle() {
+
+                evo.emit('progress', ++processed, links.length);
+
+                downloadOne();
+
+                if(processed === links.length) {
+                    evo.emit('done');
+                }
+            }
+    
+            downloadIamge(url, saveDir, fileName).then(function() {
+
+                evo.emit('download', fileName);
+                handle();
+
+            }).catch(function(err) {
+
+                evo.emit('fail', fileName, err);
+                handle();
             });
-
-            await Promise.all(promises);
         }
     }
-
-    getAllImagePageLink(detailsPageURL).then(links => {
-        return autoDownlaod(links);
-    }).then(_ => {
-        evo.emit('done');
-    }).catch(err => {
-        evo.emit('error', err);
-    });
+    
+    getAllImagePageLink(detailsPageURL).then(autoDownload);
 
     return evo;
 }
