@@ -20,12 +20,24 @@ function downloadFile(url, path) {
 
     return new Promise(function(resolve, reject) {
         let stream          = fs.createWriteStream(path);
-        let streamFinished  = false;
         let donwloadTimeout = 100000;
+        let timerId;
 
         // 此处的timeout为等待服务器响应的时间
-        request.get(url, {}).on('error', function(err) {
+        request.get(url, {timeout: 60000}).on('error', function(err) {
             return reject(err);
+
+        }).on('response', function(response) {
+
+            if(response.statusCode !== 200) {
+                return reject(new Error(`Response Error. HTTP Status Code: ${response.statusCode}.`));
+            }
+
+            // 到达等待时间下载未完成，销毁可写流并发出错误事件
+            timerId = setTimeout(function() {
+                stream.destroy(new Error('Download Timeout.'));
+            }, donwloadTimeout);
+
         }).pipe(stream);
     
         stream.on('error', function(err) {
@@ -33,14 +45,12 @@ function downloadFile(url, path) {
         });
     
         stream.on('finish', function() {
-            streamFinished = true;
+
+            // 下载完成清除时钟
+            clearTimeout(timerId);
+            
             return resolve();
         });
-
-        // 到达等待时间下载未完成，销毁可写流并发出错误事件
-        setTimeout(function() {
-            streamFinished === false && stream.destroy(new Error('Download Timeout.'));
-        }, donwloadTimeout);
     });
 }
 
@@ -62,7 +72,7 @@ function requestHTML(url, userOptions = {}) {
             Object.assign(options.headers, userOptions.headers);
             delete userOptions.headers;
         }
-        
+
         Object.assign(options, userOptions);
 
         let rq = request.get(url, options, function(err, response, body) {
