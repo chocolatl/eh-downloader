@@ -41,6 +41,10 @@ function downloadFile(url, path) {
         }).pipe(stream);
     
         stream.on('error', function(err) {
+
+            // 出错时清除时钟
+            clearTimeout(timerId);
+
             return reject(err);
         });
     
@@ -48,7 +52,7 @@ function downloadFile(url, path) {
 
             // 下载完成清除时钟
             clearTimeout(timerId);
-            
+
             return resolve();
         });
     });
