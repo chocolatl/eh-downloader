@@ -234,7 +234,7 @@ function downloadDoujinshi(detailsPageURL, saveDir, threads = undefined) {
             fs.mkdirSync(saveDir);
         }
     } catch (err) {
-        return Promise.reject(err);
+        throw err;
     }
 
     return downloadAll(detailsPageURL, saveDir, threads);
