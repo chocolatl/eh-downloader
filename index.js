@@ -9,10 +9,12 @@ const {JSDOM} = jsdom;
 const request = require('request');
 
 
+
 const USER_AGENT   = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.75 Safari/537.36';
 const ACCEPT_HTML  = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8';
 const ACCEPT_IMAGE = 'image/webp,image/apng,image/*,*/*;q=0.8';
 const ACCEPT_LANG  = 'en-US,en;q=0.9';
+
 
 function downloadFile(url, path) {
 
@@ -42,7 +44,7 @@ function downloadFile(url, path) {
     });
 }
 
-function requestHTML(url, userOptions) {
+function requestHTML(url, userOptions = {}) {
 
     return new Promise(function(resolve, reject) {
 
@@ -56,8 +58,11 @@ function requestHTML(url, userOptions) {
             }
         }
 
-        Object.assign(options.headers, userOptions.headers);
-        delete userOptions.headers;
+        if(userOptions.headers) {
+            Object.assign(options.headers, userOptions.headers);
+            delete userOptions.headers;
+        }
+        
         Object.assign(options, userOptions);
 
         let rq = request.get(url, options, function(err, response, body) {
