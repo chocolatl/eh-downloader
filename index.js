@@ -4,7 +4,6 @@ const http = require('http');
 const {URL} = require('url');
 const EventEmitter = require('events');
 
-// const download = require('download');
 const jsdom = require("jsdom");
 const {JSDOM} = jsdom;
 const request = require('request');
