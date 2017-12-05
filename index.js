@@ -172,7 +172,7 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
                 return downloadIamge(reloadURL, saveDir, fileName);
 
             } else {
-                throw new Error(err);
+                throw err;
             }
         });
     });
