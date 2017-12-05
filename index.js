@@ -211,12 +211,12 @@ function downloadAll(detailsPageURL, saveDir, threads = 3) {
     
             downloadIamge(url, saveDir, fileName).then(function() {
 
-                evo.emit('download', fileName);
+                evo.emit('download', {fileName, index, url});
                 handle();
 
             }).catch(function(err) {
 
-                evo.emit('fail', fileName, err);
+                evo.emit('fail', err, {fileName, index, url});
                 handle();
             });
         }
