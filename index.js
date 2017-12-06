@@ -102,15 +102,14 @@ function getAllImagePageLink(detailsPageURL) {
 
         let {window: {document}} = new JSDOM(html);
 
-        let pageNavigationLinks = document.querySelector('.gtb').querySelectorAll('a');
+        let pageNavLinks = document.querySelector('.gtb').querySelectorAll('a');
 
-            pageNavigationLinks = Array.from(pageNavigationLinks).map(el => el.href);
+            pageNavLinks = Array.from(pageNavLinks).map(el => el.href);
 
-            pageNavigationLinks = pageNavigationLinks.length === 1 ? 
-                                  pageNavigationLinks : 
-                                  pageNavigationLinks.slice(0, -1);     // 去除最后一个链接（下一页箭头的链接）
+            pageNavLinks = pageNavLinks.length === 1 ? 
+                           pageNavLinks : pageNavLinks.slice(0, -1);     // 去除最后一个链接（下一页箭头的链接）
 
-            pageNavigationLinks = pageNavigationLinks.map(link => {
+            pageNavLinks = pageNavLinks.map(link => {
                 
                 return requestHTML(link).then(html => {
 
@@ -124,7 +123,7 @@ function getAllImagePageLink(detailsPageURL) {
                 
             });
 
-        return Promise.all(pageNavigationLinks).then(results => {
+        return Promise.all(pageNavLinks).then(results => {
 
             let imagePages = [];
 
