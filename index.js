@@ -219,7 +219,7 @@ function downloadAll(indexedLinks, saveDir, threads = 3) {
     return evo;
 }
 
-function downloadDoujinshi(detailsPageURL, saveDir, threads = undefined) {
+function downloadDoujinshi(detailsPageURL, saveDir) {
 
     try {
         if(fs.existsSync(saveDir) === false) {
@@ -230,7 +230,7 @@ function downloadDoujinshi(detailsPageURL, saveDir, threads = undefined) {
     }
 
     return getAllImagePageLink(detailsPageURL).then(links => {
-        return downloadAll([...links.entries()], saveDir, threads);
+        return downloadAll([...links.entries()], saveDir, config.download.threads);
     });
 
 }
