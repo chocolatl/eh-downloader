@@ -9,9 +9,9 @@ const {JSDOM} = jsdom;
 const request = require('request');
 const yaml = require('js-yaml');
 
-const config = yaml.load(fs.readFileSync('config.yml', 'utf8'));
+const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
-const USER_AGENT   = config.download.userAgent;
+const USER_AGENT   = USER_CONFIG['download']['userAgent'];
 const ACCEPT_HTML  = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8';
 const ACCEPT_IMAGE = 'image/webp,image/apng,image/*,*/*;q=0.8';
 const ACCEPT_LANG  = 'en-US,en;q=0.9';
@@ -230,7 +230,7 @@ function downloadDoujinshi(detailsPageURL, saveDir) {
     }
 
     return getAllImagePageLink(detailsPageURL).then(links => {
-        return downloadAll([...links.entries()], saveDir, config.download.threads);
+        return downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
     });
 
 }
