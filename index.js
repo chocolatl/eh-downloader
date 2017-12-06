@@ -173,51 +173,47 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
     });
 }
 
-function downloadAll(detailsPageURL, saveDir, threads = 3) {
+
+function downloadAll(indexedLinks, saveDir, threads = 3) {
 
     let evo = new EventEmitter();
 
-    function autoDownload(links) {
+    let total = indexedLinks.length;
+    let processed = 0;
 
-        let indexedLinks = [...links.entries()];
-        let processed = 0;
-
-        for(let i = 0; i < threads; i++) {
-            downloadOne();
-        }
-
-        function downloadOne() {
-
-            if(indexedLinks.length === 0) return;
-            
-            let [index, url] = indexedLinks.shift();
-            let fileName = index + '.jpg';
-    
-            function handle() {
-
-                evo.emit('progress', ++processed, links.length);
-
-                downloadOne();
-
-                if(processed === links.length) {
-                    evo.emit('done');
-                }
-            }
-    
-            downloadIamge(url, saveDir, fileName).then(function() {
-
-                evo.emit('download', {fileName, index, url});
-                handle();
-
-            }).catch(function(err) {
-
-                evo.emit('fail', err, {fileName, index, url});
-                handle();
-            });
-        }
+    for(let i = 0; i < threads; i++) {
+        downloadOne();
     }
-    
-    getAllImagePageLink(detailsPageURL).then(autoDownload);
+
+    function downloadOne() {
+
+        if(indexedLinks.length === 0) return;
+        
+        let [index, url] = indexedLinks.shift();
+        let fileName = index + '.jpg';
+
+        function handle() {
+
+            evo.emit('progress', ++processed, total);
+
+            downloadOne();
+
+            if(processed === total) {
+                evo.emit('done');
+            }
+        }
+
+        downloadIamge(url, saveDir, fileName).then(function() {
+
+            evo.emit('download', {fileName, index, url});
+            handle();
+
+        }).catch(function(err) {
+
+            evo.emit('fail', err, {fileName, index, url});
+            handle();
+        });
+    }
 
     return evo;
 }
@@ -229,10 +225,13 @@ function downloadDoujinshi(detailsPageURL, saveDir, threads = undefined) {
             fs.mkdirSync(saveDir);
         }
     } catch (err) {
-        throw err;
+        return Promise.reject(err);
     }
 
-    return downloadAll(detailsPageURL, saveDir, threads);
+    return getAllImagePageLink(detailsPageURL).then(links => {
+        return downloadAll([...links.entries()], saveDir, threads);
+    });
+
 }
 
 module.exports = {
