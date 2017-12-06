@@ -192,7 +192,7 @@ async function downloadIamge(imagePageURL, saveDir, fileName) {
     if(lastErr !== null && nlretry === true) {
 
         // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
-        let {imageURL, reloadURL} = await getImagePageInfo(imagePageURL);
+        let {imageURL} =  await getImagePageInfo(reloadURL);
         await downloadFile(imageURL, savePath);
 
     } else if(lastErr !== null) {
