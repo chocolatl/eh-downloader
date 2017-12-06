@@ -12,6 +12,7 @@
   "author": "chocolatl",
   "license": "MIT",
   "dependencies": {
+    "js-yaml": "^3.10.0",
     "jsdom": "^11.3.0",
     "request": "^2.83.0"
   }

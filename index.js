@@ -7,8 +7,9 @@ const EventEmitter = require('events');
 const jsdom = require("jsdom");
 const {JSDOM} = jsdom;
 const request = require('request');
+const yaml = require('js-yaml');
 
-
+const config = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
 const USER_AGENT   = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.75 Safari/537.36';
 const ACCEPT_HTML  = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8';
