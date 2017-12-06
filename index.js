@@ -80,7 +80,7 @@ function requestHTML(url, userOptions = {}) {
 
         Object.assign(options, userOptions);
 
-        let rq = request.get(url, options, function(err, response, body) {
+        request.get(url, options, function(err, response, body) {
 
             if(err) return reject(err);
 
