@@ -158,11 +158,7 @@ function downloadIamge(imagePageURL, saveDir, fileName) {
     
     return getImagePageInfo(imagePageURL).then(({imageURL, reloadURL}) => {
         
-        return downloadFile(imageURL, path.join(saveDir, fileName)).then(_ => {
-
-            // console.log(`${fileName} Download Successful.`);
-            
-        }).catch(err => {
+        return downloadFile(imageURL, path.join(saveDir, fileName)).catch(err => {
 
             // 还没有点击重试链接
             if(imagePageURL.includes('nl=') === false) {
