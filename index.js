@@ -13,21 +13,27 @@ const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
 const USER_AGENT   = USER_CONFIG['download']['userAgent'];
 const ACCEPT_HTML  = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8';
-const ACCEPT_IMAGE = 'image/webp,image/apng,image/*,*/*;q=0.8';
 const ACCEPT_LANG  = 'en-US,en;q=0.9';
 
 
 function downloadFile(url, path) {
 
     return new Promise(function(resolve, reject) {
-        let stream          = fs.createWriteStream(path);
+
+        let stream = fs.createWriteStream(path);
         let donwloadTimeout = 100000;
         let timerId;
 
-        // 此处的timeout为等待服务器响应的时间
-        request.get(url, {timeout: 60000}).on('error', function(err) {
-            return reject(err);
+        let options = {
+            timeout: 60000,
+            headers: {
+                'user-agent': USER_AGENT
+            }
+        }
 
+        // 此处的timeout为等待服务器响应的时间
+        request.get(url, options).on('error', function(err) {
+            return reject(err);
         }).on('response', function(response) {
 
             if(response.statusCode !== 200) {
