@@ -8,6 +8,11 @@ download:
   # 重试可能会消耗配额，建议设置为 3
   retries: 3
 
+  # 在retries指定的重试次数消耗完后图片仍然下载失败的情况下
+  # 尝试使用 'Click here if the image fails loading' 链接重试
+  # 使用这种方法重试会消耗较多的配额
+  nlretry: true
+
   # 未实现
   # 原图存在时是否下载原图
   # 下载原图会消耗大量配额，所以默认为 false

@@ -157,15 +157,18 @@ function getImagePageInfo(imagePageURL) {
 
 async function downloadIamge(imagePageURL, saveDir, fileName) {
     
-    let lastErr = null,
-        retries = USER_CONFIG['download']['retries'] || 0;
-        
+    let lastErr  = null,
+        retries  = USER_CONFIG['download']['retries'] || 0,
+        nlretry  = USER_CONFIG['download']['nlretry'] || false;
+
+    let savePath = path.join(saveDir, fileName);
+
     let {imageURL, reloadURL} = await getImagePageInfo(imagePageURL);
 
     do {
         try {
 
-            await downloadFile(imageURL, path.join(saveDir, fileName));
+            await downloadFile(imageURL, savePath);
 
         } catch (err) {
 
@@ -179,17 +182,17 @@ async function downloadIamge(imagePageURL, saveDir, fileName) {
 
     } while(retries--);
 
-    if(lastErr) throw lastErr;
 
-    // // 还没有点击重试链接
-    // if(imagePageURL.includes('nl=') === false) {
-        
-    //     // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
-    //     await downloadIamge(reloadURL, saveDir, fileName);
+    if(lastErr !== null && nlretry === true) {
 
-    // } else {
-    //     throw err;
-    // }
+        // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
+        let {imageURL, reloadURL} = await getImagePageInfo(imagePageURL);
+        await downloadFile(imageURL, savePath);
+
+    } else if(lastErr !== null) {
+
+        throw lastErr;
+    }
 }
 
 
