@@ -23,4 +23,6 @@ downloadDoujinshi(durl, dpath).then(ev => {
     ev.on('error', err => {
         console.error(err);
     });
+}).catch(err => {
+    console.error(err);
 });
