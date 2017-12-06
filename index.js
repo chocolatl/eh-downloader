@@ -155,23 +155,41 @@ function getImagePageInfo(imagePageURL) {
     });
 }
 
-function downloadIamge(imagePageURL, saveDir, fileName) {
+async function downloadIamge(imagePageURL, saveDir, fileName) {
     
-    return getImagePageInfo(imagePageURL).then(({imageURL, reloadURL}) => {
+    let lastErr = null,
+        retries = USER_CONFIG['download']['retries'] || 0;
         
-        return downloadFile(imageURL, path.join(saveDir, fileName)).catch(err => {
+    let {imageURL, reloadURL} = await getImagePageInfo(imagePageURL);
 
-            // 还没有点击重试链接
-            if(imagePageURL.includes('nl=') === false) {
+    do {
+        try {
 
-                // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
-                return downloadIamge(reloadURL, saveDir, fileName);
+            await downloadFile(imageURL, path.join(saveDir, fileName));
 
-            } else {
-                throw err;
-            }
-        });
-    });
+        } catch (err) {
+
+            lastErr = err;
+            continue;
+        }
+
+        // 没有捕捉到错误说明下载成功，跳出循环
+        lastErr = null;
+        break;
+
+    } while(retries--);
+
+    if(lastErr) throw lastErr;
+
+    // // 还没有点击重试链接
+    // if(imagePageURL.includes('nl=') === false) {
+        
+    //     // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
+    //     await downloadIamge(reloadURL, saveDir, fileName);
+
+    // } else {
+    //     throw err;
+    // }
 }
 
 
