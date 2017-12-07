@@ -78,7 +78,7 @@ function requestHTML(url, userOptions = {}) {
     }
 
     let options = {
-        timeout: 60000,
+        timeout: 12000,
         gzip   : true,
         headers: {
             'user-agent': USER_AGENT,
