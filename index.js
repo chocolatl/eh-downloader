@@ -116,19 +116,20 @@ function getAllImagePageLink(detailsPageURL) {
             pageNavLinks = pageNavLinks.length === 1 ? 
                            pageNavLinks : pageNavLinks.slice(0, -1);     // 去除最后一个链接（下一页箭头的链接）
 
-            pageNavLinks = pageNavLinks.map(link => {
-                
-                return requestHTML(link).then(html => {
+            pageNavLinks = pageNavLinks.map(getImageLinks);
+            
 
-                    let {window: {document}} = new JSDOM(html);
+        function getImageLinks(pageNavLink) {
 
-                    let imagePageLinks = document.querySelectorAll('#gdt > .gdtm a');
-                        imagePageLinks = Array.from(imagePageLinks).map(el => el.href);
+            return requestHTML(pageNavLink).then(html => {
 
-                    return imagePageLinks;
-                });
-                
+                let {window: {document}} = new JSDOM(html);
+
+                let imagePageLinks = document.querySelectorAll('#gdt > .gdtm a');
+
+                return Array.from(imagePageLinks).map(el => el.href);
             });
+        }
 
         return Promise.all(pageNavLinks).then(results => {
 
