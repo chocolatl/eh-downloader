@@ -4,9 +4,9 @@ download:
   # 建议根据网络情况设置为 3-5 之间
   threads: 3
 
-  # 图片下载失败后的重试次数
-  # 重试可能会消耗配额，建议设置为 3
-  retries: 3
+  # 网页/图片下载失败后的重试次数
+  # 重试可能会消耗配额，建议设置为 1
+  retries: 1
 
   # 在retries指定的重试次数消耗完后图片仍然下载失败的情况下
   # 尝试使用 'Click here if the image fails loading' 链接重试

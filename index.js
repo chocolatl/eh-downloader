@@ -67,17 +67,27 @@ function downloadFile(url, path) {
 
 function requestHTML(url, userOptions = {}) {
 
-    return new Promise(function(resolve, reject) {
+    let retries;
+    if(userOptions.retries !== undefined) {
+        retries = userOptions.retries;
+        delete userOptions.retries;
+    } else if (USER_CONFIG['download']['retries'] !== undefined) {
+        retries = USER_CONFIG['download']['retries'];
+    } else {
+        retries = 0;
+    }
 
-        let options = {
-            timeout: 60000,
-            gzip   : true,
-            headers: {
-                'user-agent': USER_AGENT,
-                'accept': ACCEPT_HTML,
-                'accept-language': ACCEPT_LANG
-            }
+    let options = {
+        timeout: 60000,
+        gzip   : true,
+        headers: {
+            'user-agent': USER_AGENT,
+            'accept': ACCEPT_HTML,
+            'accept-language': ACCEPT_LANG
         }
+    }
+
+    let promise = new Promise(function(resolve, reject) {
 
         if(userOptions.headers) {
             Object.assign(options.headers, userOptions.headers);
@@ -97,6 +107,17 @@ function requestHTML(url, userOptions = {}) {
             return resolve(body);
         });
 
+    });
+
+    return promise.catch(err => {
+        if(err.code === 'ECONNRESET' || err.code === 'ESOCKETTIMEDOUT' || err.code === 'ETIMEDOUT') {
+            if(retries > 0) {
+                options.retries = retries - 1;
+                return requestHTML(url, options);
+            } else {
+                throw err;
+            }
+        }
     });
 }
 
