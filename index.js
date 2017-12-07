@@ -8,6 +8,7 @@ const jsdom = require("jsdom");
 const {JSDOM} = jsdom;
 const request = require('request');
 const yaml = require('js-yaml');
+const deepAssign = require('deep-assign');
 
 const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
@@ -87,14 +88,9 @@ function requestHTML(url, userOptions = {}) {
         }
     }
 
+    options = deepAssign(options, userOptions);
+
     let promise = new Promise(function(resolve, reject) {
-
-        if(userOptions.headers) {
-            Object.assign(options.headers, userOptions.headers);
-            delete userOptions.headers;
-        }
-
-        Object.assign(options, userOptions);
 
         request.get(url, options, function(err, response, body) {
 
