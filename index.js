@@ -105,7 +105,8 @@ function getAllImagePageLink(detailsPageURL) {
     // 防止URL带上页数的参数,以确保是详情页的第一页
     detailsPageURL = detailsPageURL.split('?')[0];
 
-    return requestHTML(detailsPageURL).then(html => {
+    // cookie: 'nw=1' 用来跳过某些画廊出现的 Content Warning
+    return requestHTML(detailsPageURL, {headers: {cookie: 'nw=1'}}).then(html => {
 
         let {window: {document}} = new JSDOM(html);
 
@@ -121,7 +122,7 @@ function getAllImagePageLink(detailsPageURL) {
 
         function getImageLinks(pageNavLink) {
 
-            return requestHTML(pageNavLink).then(html => {
+            return requestHTML(pageNavLink, {headers: {cookie: 'nw=1'}}).then(html => {
 
                 let {window: {document}} = new JSDOM(html);
 
