@@ -181,6 +181,11 @@ async function downloadIamge(imagePageURL, saveDir, fileName) {
         } catch (err) {
 
             lastErr = err;
+
+            // 等待1000ms
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 重试
             continue;
         }
 
