@@ -10,6 +10,7 @@ const request = require('request');
 const yaml = require('js-yaml');
 const deepAssign = require('deep-assign');
 const mkdirp = require('mkdirp');
+const sanitize = require("sanitize-filename");
 
 const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
@@ -115,6 +116,21 @@ function requestHTML(url, userOptions = {}) {
                 throw err;
             }
         }
+    });
+}
+
+function getGalleryTitle(detailsPageURL) {
+
+    // cookie: 'nw=1' 用来跳过某些画廊出现的 Content Warning
+    return requestHTML(detailsPageURL, {headers: {cookie: 'nw=1'}}).then(html => {
+
+        let {window: {document}} = new JSDOM(html);
+
+        return {
+            ntitle: document.getElementById('gn').textContent,
+            jtitle: document.getElementById('gj').textContent
+        }
+
     });
 }
 
@@ -284,10 +300,23 @@ function downloadDoujinshi(detailsPageURL, saveDir) {
         return Promise.reject(err);
     }
 
-    return getAllImagePageLink(detailsPageURL).then(links => {
-        return downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
-    });
+    return getGalleryTitle(detailsPageURL).then(({jtitle, ntitle}) => {
+        let title = USER_CONFIG['download']['jtitle'] === true ? jtitle : ntitle;
+        if(jtitle.trim() === '') title = ntitle;
+        if(ntitle.trim() === '') title = jtitle;
+        
+        title = sanitize(title);
+        if(title.trim() === '') throw new Error('Empty Title.');
 
+        saveDir = path.join(saveDir, title);
+        if(fs.existsSync(saveDir) === false) {
+            fs.mkdirSync(saveDir);
+        }
+
+        return getAllImagePageLink(detailsPageURL).then(links => {
+            return downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
+        });  
+    });
 }
 
 module.exports = {

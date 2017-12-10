@@ -19,6 +19,10 @@ download:
   # 该选项仅在登录账号后有效
   original: false
 
+  # 是否使用日文标题创建文件夹，为 false 时使用主标题
+  # 有些非法字符会被过滤，所以创建的文件夹标题未必和网页上的一致
+  jtitle: true
+
   # 用户代理字符串
   userAgent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.75 Safari/537.36"
 

@@ -16,6 +16,7 @@
     "js-yaml": "^3.10.0",
     "jsdom": "^11.3.0",
     "mkdirp": "^0.5.1",
-    "request": "^2.83.0"
+    "request": "^2.83.0",
+    "sanitize-filename": "^1.6.1"
   }
 }
