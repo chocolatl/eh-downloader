@@ -9,6 +9,7 @@ const {JSDOM} = jsdom;
 const request = require('request');
 const yaml = require('js-yaml');
 const deepAssign = require('deep-assign');
+const mkdirp = require('mkdirp');
 
 const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
@@ -274,7 +275,7 @@ function downloadDoujinshi(detailsPageURL, saveDir) {
 
     try {
         if(fs.existsSync(saveDir) === false) {
-            fs.mkdirSync(saveDir);
+            mkdirp.sync(saveDir);
         }
     } catch (err) {
         return Promise.reject(err);
