@@ -276,7 +276,10 @@ function downloadDoujinshi(detailsPageURL, saveDir) {
     try {
         if(fs.existsSync(saveDir) === false) {
             mkdirp.sync(saveDir);
+        } else if (fs.lstatSync(saveDir).isDirectory() === false) {
+            throw new Error(saveDir + ' is not a directory.');
         }
+        
     } catch (err) {
         return Promise.reject(err);
     }
