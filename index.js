@@ -28,10 +28,17 @@ function requestHTML(url, userOptions) {
     return requestHTML(url, userOptions);
 }
 
-function downloadFile(url, path) {
+function downloadFile(url, path, userOptions) {
+
     const downloadFile = require('./lib/download-file');
 
-    return downloadFile(url, path);
+    userOptions = deepAssign({
+        headers: {
+            'user-agent': USER_CONFIG['download']['userAgent']
+        }
+    }, userOptions);
+
+    return downloadFile(url, path, userOptions);
 }
 
 function getGalleryTitle(detailsPageURL) {
