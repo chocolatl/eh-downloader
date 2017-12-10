@@ -287,21 +287,20 @@ function downloadAll(indexedLinks, saveDir, threads = 3) {
     return evo;
 }
 
-function downloadDoujinshi(detailsPageURL, saveDir) {
+async function downloadDoujinshi(detailsPageURL, saveDir) {
 
     try {
+        
         if(fs.existsSync(saveDir) === false) {
             mkdirp.sync(saveDir);
         } else if (fs.lstatSync(saveDir).isDirectory() === false) {
             throw new Error(saveDir + ' is not a directory.');
         }
-        
-    } catch (err) {
-        return Promise.reject(err);
-    }
 
-    return getGalleryTitle(detailsPageURL).then(({jtitle, ntitle}) => {
+        let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
+
         let title = USER_CONFIG['download']['jtitle'] === true ? jtitle : ntitle;
+
         if(jtitle.trim() === '') title = ntitle;
         if(ntitle.trim() === '') title = jtitle;
         
@@ -313,10 +312,15 @@ function downloadDoujinshi(detailsPageURL, saveDir) {
             fs.mkdirSync(saveDir);
         }
 
-        return getAllImagePageLink(detailsPageURL).then(links => {
-            return downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
-        });  
-    });
+        let links = await getAllImagePageLink(detailsPageURL)
+        
+        let event = downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
+
+        return Promise.resolve(event);
+
+    } catch (err) {
+        return Promise.reject(err);
+    }
 }
 
 module.exports = {
