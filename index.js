@@ -14,10 +14,20 @@ const sanitize = require("sanitize-filename");
 
 const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
-const USER_AGENT   = USER_CONFIG['download']['userAgent'];
-const ACCEPT_HTML  = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8';
-const ACCEPT_LANG  = 'en-US,en;q=0.9';
 
+function requestHTML(url, userOptions) {
+
+    const requestHTML = require('./lib/request-html');
+
+    userOptions = deepAssign({
+        retries: USER_CONFIG['download']['retries'],
+        headers: {
+            'user-agent': USER_CONFIG['download']['userAgent']
+        }
+    }, userOptions);
+    
+    return requestHTML(url, userOptions);
+}
 
 function downloadFile(url, path) {
 
@@ -30,7 +40,7 @@ function downloadFile(url, path) {
         let options = {
             timeout: 60000,
             headers: {
-                'user-agent': USER_AGENT
+                'user-agent': ''
             }
         }
 
@@ -65,57 +75,6 @@ function downloadFile(url, path) {
 
             return resolve();
         });
-    });
-}
-
-function requestHTML(url, userOptions = {}) {
-
-    let retries;
-    if(userOptions.retries !== undefined) {
-        retries = userOptions.retries;
-        delete userOptions.retries;
-    } else if (USER_CONFIG['download']['retries'] !== undefined) {
-        retries = USER_CONFIG['download']['retries'];
-    } else {
-        retries = 0;
-    }
-
-    let options = {
-        timeout: 12000,
-        gzip   : true,
-        headers: {
-            'user-agent': USER_AGENT,
-            'accept': ACCEPT_HTML,
-            'accept-language': ACCEPT_LANG
-        }
-    }
-
-    options = deepAssign(options, userOptions);
-
-    let promise = new Promise(function(resolve, reject) {
-
-        request.get(url, options, function(err, response, body) {
-
-            if(err) return reject(err);
-
-            if(response.statusCode !== 200) {
-                return reject(new Error(`Response Error. HTTP Status Code: ${response.statusCode}.`));
-            }
-
-            return resolve(body);
-        });
-
-    });
-
-    return promise.catch(err => {
-        if(err.code === 'ECONNRESET' || err.code === 'ESOCKETTIMEDOUT' || err.code === 'ETIMEDOUT') {
-            if(retries > 0) {
-                options.retries = retries - 1;
-                return requestHTML(url, options);
-            } else {
-                throw err;
-            }
-        }
     });
 }
 
