@@ -4,8 +4,7 @@ const http = require('http');
 const {URL} = require('url');
 const EventEmitter = require('events');
 
-const jsdom = require("jsdom");
-const {JSDOM} = jsdom;
+const {JSDOM} = require("jsdom");
 const yaml = require('js-yaml');
 const deepAssign = require('deep-assign');
 const mkdirp = require('mkdirp');
