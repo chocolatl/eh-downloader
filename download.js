@@ -1,9 +1,9 @@
-const {downloadDoujinshi} = require('./index.js');
+const {downloadGallery} = require('./index.js');
 
 let durl  = process.argv[2];
 let dpath = process.argv[3];
 
-downloadDoujinshi(durl, dpath).then(ev => {
+downloadGallery(durl, dpath).then(ev => {
     ev.on('download', info => {
         console.log(`${info.fileName} Download Successful.`);
     });

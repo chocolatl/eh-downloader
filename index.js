@@ -287,10 +287,10 @@ function downloadAll(indexedLinks, saveDir, threads = 3) {
     return evo;
 }
 
-async function downloadDoujinshi(detailsPageURL, saveDir) {
+async function downloadGallery(detailsPageURL, saveDir) {
 
     try {
-        
+
         if(fs.existsSync(saveDir) === false) {
             mkdirp.sync(saveDir);
         } else if (fs.lstatSync(saveDir).isDirectory() === false) {
@@ -324,5 +324,5 @@ async function downloadDoujinshi(detailsPageURL, saveDir) {
 }
 
 module.exports = {
-    downloadDoujinshi
+    downloadGallery
 }
