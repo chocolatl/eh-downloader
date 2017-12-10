@@ -213,9 +213,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
 
     try {
 
-        if(fs.existsSync(saveDir) === false) {
-            mkdirp.sync(saveDir);
-        } else if (fs.lstatSync(saveDir).isDirectory() === false) {
+        if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
             throw new Error(saveDir + ' is not a directory.');
         }
 
@@ -231,7 +229,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
 
         saveDir = path.join(saveDir, title);
         if(fs.existsSync(saveDir) === false) {
-            fs.mkdirSync(saveDir);
+            mkdirp.sync(saveDir);
         }
 
         let links = await getAllImagePageLink(detailsPageURL)
