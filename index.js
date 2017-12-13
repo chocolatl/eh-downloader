@@ -133,11 +133,12 @@ function getImagePageInfo(imagePageURL) {
     });
 }
 
-async function downloadIamge(imagePageURL, saveDir, fileName) {
-    
-    let lastErr  = null,
-        retries  = USER_CONFIG['download']['retries'] || 0,
-        nlretry  = USER_CONFIG['download']['nlretry'] || false;
+async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
+
+    let lastErr  = null;
+
+    let retries  = options.retries || 0,
+        nlretry  = options.nlretry || false;
 
     let savePath = path.join(saveDir, fileName);
 
@@ -179,7 +180,7 @@ async function downloadIamge(imagePageURL, saveDir, fileName) {
 }
 
 
-function downloadAll(indexedLinks, saveDir, threads = 3) {
+function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
 
     let evo = new EventEmitter();
 
@@ -208,7 +209,7 @@ function downloadAll(indexedLinks, saveDir, threads = 3) {
             }
         }
 
-        downloadIamge(url, saveDir, fileName).then(function() {
+        downloadIamge(url, saveDir, fileName, downloadOptions).then(function() {
 
             evo.emit('download', {fileName, index, url});
             handle();
@@ -253,8 +254,12 @@ async function downloadGallery(detailsPageURL, saveDir) {
     }
 
     let links = await getAllImagePageLink(detailsPageURL);
-    
-    let event = downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
+    let threads = USER_CONFIG['download']['threads'];
+
+    let event = downloadAll([...links.entries()], saveDir, threads, {
+        retries: USER_CONFIG['download']['retries'],
+        nlretry: USER_CONFIG['download']['nlretry']
+    });
 
     return Promise.resolve(event);
 }
