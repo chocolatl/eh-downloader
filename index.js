@@ -40,6 +40,17 @@ function downloadFile(url, path, userOptions) {
     return downloadFile(url, path, userOptions);
 }
 
+function isLogin(cookies) {
+
+    let cookieString = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join('; ');
+
+    return requestHTML('https://e-hentai.org/home.php', {headers: {
+        cookie: cookieString
+    }}).then(html => {
+        return html.includes('Image Limits');   // 通过页面是否包含"Image Limits"字符串判断是否登录
+    });
+}
+
 function getGalleryTitle(detailsPageURL) {
 
     // cookie: 'nw=1' 用来跳过某些画廊出现的 Content Warning
@@ -209,6 +220,13 @@ function downloadAll(indexedLinks, saveDir, threads = 3) {
 }
 
 async function downloadGallery(detailsPageURL, saveDir) {
+
+    const LOGIN_COOKIES = USER_CONFIG['login'];
+    let login = LOGIN_COOKIES['__cfduid'] && LOGIN_COOKIES['ipb_member_id'] && LOGIN_COOKIES['ipb_pass_hash'];
+
+    if(login && await isLogin(LOGIN_COOKIES) === false) {
+        throw new Error('Login Faild.');
+    }
 
     try {
 
