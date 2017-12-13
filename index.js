@@ -228,36 +228,31 @@ async function downloadGallery(detailsPageURL, saveDir) {
         throw new Error('Login Faild.');
     }
 
-    try {
 
-        if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
-            throw new Error(saveDir + ' is not a directory.');
-        }
-
-        let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
-
-        let title = USER_CONFIG['download']['jtitle'] === true ? jtitle : ntitle;
-
-        if(jtitle.trim() === '') title = ntitle;
-        if(ntitle.trim() === '') title = jtitle;
-        
-        title = sanitize(title);
-        if(title.trim() === '') throw new Error('Empty Title.');
-
-        saveDir = path.join(saveDir, title);
-        if(fs.existsSync(saveDir) === false) {
-            mkdirp.sync(saveDir);
-        }
-
-        let links = await getAllImagePageLink(detailsPageURL);
-        
-        let event = downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
-
-        return Promise.resolve(event);
-
-    } catch (err) {
-        return Promise.reject(err);
+    if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
+        throw new Error(saveDir + ' is not a directory.');
     }
+
+    let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
+
+    let title = USER_CONFIG['download']['jtitle'] === true ? jtitle : ntitle;
+
+    if(jtitle.trim() === '') title = ntitle;
+    if(ntitle.trim() === '') title = jtitle;
+    
+    title = sanitize(title);
+    if(title.trim() === '') throw new Error('Empty Title.');
+
+    saveDir = path.join(saveDir, title);
+    if(fs.existsSync(saveDir) === false) {
+        mkdirp.sync(saveDir);
+    }
+
+    let links = await getAllImagePageLink(detailsPageURL);
+    
+    let event = downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
+
+    return Promise.resolve(event);
 }
 
 module.exports = {
