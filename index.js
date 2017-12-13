@@ -249,7 +249,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
             mkdirp.sync(saveDir);
         }
 
-        let links = await getAllImagePageLink(detailsPageURL)
+        let links = await getAllImagePageLink(detailsPageURL);
         
         let event = downloadAll([...links.entries()], saveDir, USER_CONFIG['download']['threads']);
 
