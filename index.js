@@ -119,11 +119,14 @@ function getImagePageInfo(imagePageURL) {
         let imageURL = imageEl.src;
         let nextURL  = imageEl.parentElement.href;
 
+        let originalEl  = document.querySelector('#i7 a');
+        let originalURL = originalEl && originalEl.href;    // originalURL可能不存在，这时值为 null
+
         let reloadCode = /onclick=\"return nl\('(.*)'\)\"/.exec(document.getElementById('loadfail').outerHTML)[1];
         let reloadURL  = imagePageURL + (imagePageURL.indexOf('?') > -1 ? '&' : '?') + 'nl=' + reloadCode;
 
         return {
-            imageURL, nextURL, reloadURL
+            imageURL, nextURL, reloadURL, originalURL
         };
 
     });
