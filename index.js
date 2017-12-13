@@ -40,12 +40,13 @@ function downloadFile(url, path, userOptions) {
     return downloadFile(url, path, userOptions);
 }
 
-function isLogin(cookies) {
+function cookieString(cookiesObj) {
+    return Object.entries(cookiesObj).map(([k, v]) => `${k}=${v}`).join('; ');
+}
 
-    let cookieString = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join('; ');
-
+function isLogin(cookiesObj) {
     return requestHTML('https://e-hentai.org/home.php', {headers: {
-        cookie: cookieString
+        cookie: cookieString(cookiesObj)
     }}).then(html => {
         return html.includes('Image Limits');   // 通过页面是否包含"Image Limits"字符串判断是否登录
     });
