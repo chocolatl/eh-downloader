@@ -24,7 +24,7 @@ function requestHTML(url, userOptions) {
         headers: {
             'User-Agent': USER_CONFIG['download']['userAgent']
         }
-    }, userOptions);
+    }, cloneDeep(userOptions));
     
     return requestHTML(url, userOptions);
 }
@@ -37,7 +37,7 @@ function downloadFile(url, path, userOptions) {
         headers: {
             'User-Agent': USER_CONFIG['download']['userAgent']
         }
-    }, userOptions);
+    }, cloneDeep(userOptions));
 
     return downloadFile(url, path, userOptions);
 }
@@ -156,7 +156,7 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
     let lastErr  = null;
 
     // 深拷贝传入选项
-    options = deepAssign({}, options);
+    options = cloneDeep(options);
 
     let retries  = options.retries || 0,
         nlretry  = options.nlretry || false,
