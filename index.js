@@ -20,7 +20,7 @@ function requestHTML(url, userOptions) {
     userOptions = deepAssign({
         retries: USER_CONFIG['download']['retries'],
         headers: {
-            'user-agent': USER_CONFIG['download']['userAgent']
+            'User-Agent': USER_CONFIG['download']['userAgent']
         }
     }, userOptions);
     
@@ -33,7 +33,7 @@ function downloadFile(url, path, userOptions) {
 
     userOptions = deepAssign({
         headers: {
-            'user-agent': USER_CONFIG['download']['userAgent']
+            'User-Agent': USER_CONFIG['download']['userAgent']
         }
     }, userOptions);
 
@@ -46,7 +46,7 @@ function cookieString(cookiesObj) {
 
 function isLogin(cookiesObj) {
     return requestHTML('https://e-hentai.org/home.php', {headers: {
-        cookie: cookieString(cookiesObj)
+        Cookie: cookieString(cookiesObj)
     }}).then(html => {
         return html.includes('Image Limits');   // 通过页面是否包含"Image Limits"字符串判断是否登录
     });
@@ -55,7 +55,7 @@ function isLogin(cookiesObj) {
 function getGalleryTitle(detailsPageURL) {
 
     // cookie: 'nw=1' 用来跳过某些画廊出现的 Content Warning
-    return requestHTML(detailsPageURL, {headers: {cookie: 'nw=1'}}).then(html => {
+    return requestHTML(detailsPageURL, {headers: {Cookie: 'nw=1'}}).then(html => {
 
         let {window: {document}} = new JSDOM(html);
 
@@ -73,7 +73,7 @@ function getAllImagePageLink(detailsPageURL) {
     detailsPageURL = detailsPageURL.split('?')[0];
 
     // cookie: 'nw=1' 用来跳过某些画廊出现的 Content Warning
-    return requestHTML(detailsPageURL, {headers: {cookie: 'nw=1'}}).then(html => {
+    return requestHTML(detailsPageURL, {headers: {Cookie: 'nw=1'}}).then(html => {
 
         let {window: {document}} = new JSDOM(html);
 
@@ -89,7 +89,7 @@ function getAllImagePageLink(detailsPageURL) {
 
         function getImageLinks(pageNavLink) {
 
-            return requestHTML(pageNavLink, {headers: {cookie: 'nw=1'}}).then(html => {
+            return requestHTML(pageNavLink, {headers: {Cookie: 'nw=1'}}).then(html => {
 
                 let {window: {document}} = new JSDOM(html);
 
@@ -281,7 +281,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
     }
 
     if(fullLoginField) {
-        downloadOptions.headers.cookie = cookieString(LOGIN_COOKIES);
+        downloadOptions.headers.Cookie = cookieString(LOGIN_COOKIES);
     }
     
     let event = downloadAll([...links.entries()], saveDir, threads, downloadOptions);
