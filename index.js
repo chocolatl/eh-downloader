@@ -4,11 +4,13 @@ const http = require('http');
 const {URL} = require('url');
 const EventEmitter = require('events');
 
+const request = require('request');
 const {JSDOM} = require("jsdom");
 const yaml = require('js-yaml');
 const deepAssign = require('deep-assign');
 const mkdirp = require('mkdirp');
 const sanitize = require("sanitize-filename");
+const cloneDeep = require('clone-deep');
 
 const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
@@ -38,6 +40,22 @@ function downloadFile(url, path, userOptions) {
     }, userOptions);
 
     return downloadFile(url, path, userOptions);
+}
+
+function getRequestResponse(url, userOptions = {}) {
+
+    userOptions = deepAssign({
+        headers: {
+            'User-Agent': USER_CONFIG['download']['userAgent']
+        },
+        followRedirect: false
+    }, cloneDeep(userOptions));
+
+    return new Promise(function(resolve, reject) {
+        request.get(url, userOptions).on('response', response => {
+            resolve(response);
+        }).on('error', reject);
+    });
 }
 
 function cookieString(cookiesObj) {
@@ -157,10 +175,29 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
 
     let downloadURL = downloadOriginal ? originalURL : imageURL;
 
+    if(downloadURL === originalURL) {
+
+        let response = await getRequestResponse(downloadURL, options);
+
+        if(response.statusCode !== 302) {
+            throw new Error('Status code is not 302 found.');
+        }
+
+        // 获得原图的下载地址而非E站的302跳转地址
+        downloadURL = response.headers.location;
+    }
+
+
+    // 下载文件的地址并不是E站地址，所以不需要E站的登录Cookie信息
+    // 所以下载文件使用去除了Cookie的配置选项以确保登录信息不泄露
+    let noCookiesOptions = cloneDeep(options);
+    delete noCookiesOptions.headers.cookie;
+    delete noCookiesOptions.headers.Cookie;
+
     do {
         try {
 
-            await downloadFile(downloadURL, savePath, options);
+            await downloadFile(downloadURL, savePath, noCookiesOptions);
 
         } catch (err) {
 
@@ -185,7 +222,7 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
 
         // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
         let {imageURL} =  await getImagePageInfo(reloadURL);
-        await downloadFile(imageURL, savePath, options);
+        await downloadFile(imageURL, savePath, noCookiesOptions);
 
     } else if(lastErr !== null) {
 

@@ -12,6 +12,7 @@
   "author": "chocolatl",
   "license": "MIT",
   "dependencies": {
+    "clone-deep": "^2.0.1",
     "deep-assign": "^2.0.0",
     "js-yaml": "^3.10.0",
     "jsdom": "^11.3.0",
