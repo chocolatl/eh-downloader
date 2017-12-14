@@ -137,17 +137,30 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
 
     let lastErr  = null;
 
+    // 深拷贝传入选项
+    options = deepAssign({}, options);
+
     let retries  = options.retries || 0,
-        nlretry  = options.nlretry || false;
+        nlretry  = options.nlretry || false,
+        original = options.original || false;
+
+    delete options.retries;
+    delete options.nlretry;
+    delete options.original;
 
     let savePath = path.join(saveDir, fileName);
 
-    let {imageURL, reloadURL} = await getImagePageInfo(imagePageURL);
+    let {imageURL, reloadURL, originalURL} = await getImagePageInfo(imagePageURL);
+
+    // 判断下载原图还是压缩图
+    let downloadOriginal = original === true && originalURL !== null;
+
+    let downloadURL = downloadOriginal ? originalURL : imageURL;
 
     do {
         try {
 
-            await downloadFile(imageURL, savePath);
+            await downloadFile(downloadURL, savePath, options);
 
         } catch (err) {
 
@@ -167,11 +180,12 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
     } while(retries--);
 
 
-    if(lastErr !== null && nlretry === true) {
+    // 当downloadOriginal为ture时也跳过使用"fails loading"重试的步骤，下面的重试步骤仅针对于下载非原图
+    if(lastErr !== null && nlretry === true && downloadOriginal === false) {
 
         // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
         let {imageURL} =  await getImagePageInfo(reloadURL);
-        await downloadFile(imageURL, savePath);
+        await downloadFile(imageURL, savePath, options);
 
     } else if(lastErr !== null) {
 
@@ -227,12 +241,15 @@ function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
 async function downloadGallery(detailsPageURL, saveDir) {
 
     const LOGIN_COOKIES = USER_CONFIG['login'];
-    let login = LOGIN_COOKIES['__cfduid'] && LOGIN_COOKIES['ipb_member_id'] && LOGIN_COOKIES['ipb_pass_hash'];
+    let fullLoginField = Boolean(LOGIN_COOKIES['__cfduid'] && LOGIN_COOKIES['ipb_member_id'] && LOGIN_COOKIES['ipb_pass_hash']);
 
-    if(login && await isLogin(LOGIN_COOKIES) === false) {
-        throw new Error('Login Faild.');
+    if(fullLoginField === false && USER_CONFIG['download']['original'] === true) {
+        throw new Error('Can not download original because you are not logged in.');
     }
 
+    if(fullLoginField === true && await isLogin(LOGIN_COOKIES) === false) {
+        throw new Error('Login Faild.');
+    }
 
     if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
         throw new Error(saveDir + ' is not a directory.');
@@ -256,10 +273,18 @@ async function downloadGallery(detailsPageURL, saveDir) {
     let links = await getAllImagePageLink(detailsPageURL);
     let threads = USER_CONFIG['download']['threads'];
 
-    let event = downloadAll([...links.entries()], saveDir, threads, {
+    let downloadOptions = {
         retries: USER_CONFIG['download']['retries'],
-        nlretry: USER_CONFIG['download']['nlretry']
-    });
+        nlretry: USER_CONFIG['download']['nlretry'],
+        original: USER_CONFIG['download']['original'],
+        headers: {}
+    }
+
+    if(fullLoginField) {
+        downloadOptions.headers.cookie = cookieString(LOGIN_COOKIES);
+    }
+    
+    let event = downloadAll([...links.entries()], saveDir, threads, downloadOptions);
 
     return Promise.resolve(event);
 }
