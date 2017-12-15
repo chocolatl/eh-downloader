@@ -238,6 +238,10 @@ function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
     let total = indexedLinks.length;
     let processed = 0;
 
+    if(total === 0) {
+        process.nextTick(_ => evo.emit('done'));
+    }
+
     for(let i = 0; i < threads; i++) {
         downloadOne();
     }
