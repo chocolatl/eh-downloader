@@ -298,13 +298,12 @@ async function downloadGallery(detailsPageURL, saveDir) {
 
     let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
 
-    let title = USER_CONFIG['download']['jtitle'] === true ? jtitle : ntitle;
-
-    if(jtitle.trim() === '') title = ntitle;
-    if(ntitle.trim() === '') title = jtitle;
+    let title = USER_CONFIG['download']['jtitle'] === true && jtitle.trim() !== '' ? jtitle : ntitle;
     
     title = sanitize(title);
-    if(title.trim() === '') throw new Error('Empty Title.');
+    if(title.trim() === '') {
+        throw new Error('Empty Title.');
+    }
 
     saveDir = path.join(saveDir, title);
     if(fs.existsSync(saveDir) === false) {
@@ -324,7 +323,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
         downloadOptions.headers.Cookie = cookieString(LOGIN_COOKIES);
     }
     
-    
+
     let failsLogPath = path.join(saveDir, 'failures.json');
 
     let indexedLinks = [];
