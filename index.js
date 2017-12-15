@@ -95,19 +95,30 @@ function getAllImagePageLink(detailsPageURL) {
 
         let {window: {document}} = new JSDOM(html);
 
-        let pageNavLinks = document.querySelector('.gtb').querySelectorAll('a');
+        // pageLinks存放分页导航器中的链接元素，里面可能有上一页、下一页的链接，而且当页面过多时，
+        // 分页导航器会用"..."按钮来省略部分分页链接，所以不能直接使用分页导航器来取得所有分页的链接
+        let pageLinks = document.querySelector('.ptt').querySelectorAll('a');
+        let pages = [];
+        
+        if(pageLinks.length === 1) {
 
-            pageNavLinks = Array.from(pageNavLinks).map(el => el.href);
+            // 只有一页的情况
+            pages = [pageLinks[0].href];
 
-            pageNavLinks = pageNavLinks.length === 1 ? 
-                           pageNavLinks : pageNavLinks.slice(0, -1);     // 去除最后一个链接（下一页箭头的链接）
+        } else {
 
-            pageNavLinks = pageNavLinks.map(getImageLinks);
-            
+            // 获取最后一页链接（跳过数组最后一项，因为是下一页链接
+            let lastPageLink = pageLinks[pageLinks.length - 2].href;
+            let lastPage = Number.parseInt(/p=(\d+)/.exec(lastPageLink)[1], 10);
 
-        function getImageLinks(pageNavLink) {
+            for(let i = 0; i <= lastPage; i++) {
+                pages.push(lastPageLink.replace(/p=(\d+)/, 'p=' + i));
+            }
+        }
 
-            return requestHTML(pageNavLink, {headers: {Cookie: 'nw=1'}}).then(html => {
+        function getImageLinks(pageLink) {
+
+            return requestHTML(pageLink, {headers: {Cookie: 'nw=1'}}).then(html => {
 
                 let {window: {document}} = new JSDOM(html);
 
@@ -117,7 +128,7 @@ function getAllImagePageLink(detailsPageURL) {
             });
         }
 
-        return Promise.all(pageNavLinks).then(results => {
+        return Promise.all(pages.map(getImageLinks)).then(results => {
 
             let imagePages = [];
 
