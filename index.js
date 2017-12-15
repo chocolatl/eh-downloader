@@ -311,7 +311,6 @@ async function downloadGallery(detailsPageURL, saveDir) {
         mkdirp.sync(saveDir);
     }
 
-    let links = await getAllImagePageLink(detailsPageURL);
     let threads = USER_CONFIG['download']['threads'];
 
     let downloadOptions = {
@@ -325,7 +324,37 @@ async function downloadGallery(detailsPageURL, saveDir) {
         downloadOptions.headers.Cookie = cookieString(LOGIN_COOKIES);
     }
     
-    let event = downloadAll([...links.entries()], saveDir, threads, downloadOptions);
+    
+    let failsLogPath = path.join(saveDir, 'failures.json');
+
+    let indexedLinks = [];
+
+    if(fs.existsSync(failsLogPath) === true && USER_CONFIG['download']['failuresLog'] === true) {
+        indexedLinks = JSON.parse(fs.readFileSync(failsLogPath)).map(({index, url}) => [index, url]);
+    } else {
+        let links = await getAllImagePageLink(detailsPageURL);
+        indexedLinks = [...links.entries()];
+    }
+
+    let event = downloadAll(indexedLinks, saveDir, threads, downloadOptions);
+
+    if(USER_CONFIG['download']['failuresLog'] === true) {
+
+        let fails = [];
+    
+        event.on('fail', (err, info) => {
+            fails.push({...info, error: err.message});
+        });
+    
+        event.on('done', function() {
+            if(fails.length === 0) {
+                fs.existsSync(failsLogPath) && fs.unlinkSync(failsLogPath);
+            } else {
+                let flogStream = fs.createWriteStream(failsLogPath);
+                flogStream.end(JSON.stringify(fails));
+            }
+        });
+    }
 
     return event;
 }
