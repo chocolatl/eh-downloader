@@ -53,7 +53,7 @@ function getRequestResponse(url, userOptions = {}) {
 
     return new Promise(function(resolve, reject) {
         request.get(url, userOptions).on('response', response => {
-            resolve(response);
+            return resolve(response);
         }).on('error', reject);
     });
 }
@@ -323,7 +323,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
     
     let event = downloadAll([...links.entries()], saveDir, threads, downloadOptions);
 
-    return Promise.resolve(event);
+    return event;
 }
 
 module.exports = {
