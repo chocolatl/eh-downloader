@@ -22,10 +22,12 @@ download:
   # 有些非法字符会被过滤，所以创建的文件夹标题未必和网页上的一致
   jtitle: true
 
-  # 是否保存图片下载失败的日志
-  # 为 true 时，当Gallery中部分图片下载失败时，会在下载目录中创建 failures.json 文件保存日志
-  # 下次在同一目录下载这个Gallery时会读取 failures.json 并仅下载上次下载失败的图片
-  failuresLog: true
+  # 是否保存图片下载进度记录
+  # 为 true 时，会在下载目录中创建 download.json 保存进度记录，记录下载成功、未下载、下载失败的项
+  # 如果由于下载时进程中断导致存在未下载的项，或由于网络等因素导致存在下载失败的项
+  # 那么下次在同一目录重新下载该Gallery时，会读取 download.json 并根据上次的进度记录继续下载
+  # 如果下载成功完成，download.json 文件会被自动删除
+  downloadLog: true
 
   # 用户代理字符串
   userAgent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.75 Safari/537.36"

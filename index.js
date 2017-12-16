@@ -335,36 +335,68 @@ async function downloadGallery(detailsPageURL, saveDir) {
     }
     
 
-    let failsLogPath = path.join(saveDir, 'failures.json');
+    let downloadLogPath = path.join(saveDir, 'download.json');
 
     let indexedLinks = [];
 
-    if(fs.existsSync(failsLogPath) === true && USER_CONFIG['download']['failuresLog'] === true) {
-        indexedLinks = JSON.parse(fs.readFileSync(failsLogPath)).map(({index, url}) => [index, url]);
+    let records = {
+        downloaded: [],
+        failed: [],
+        waiting: []
+    }
+
+    if(fs.existsSync(downloadLogPath) === true && USER_CONFIG['download']['downloadLog'] === true) {
+        
+        records = JSON.parse(fs.readFileSync(downloadLogPath));
+
+        // 将上次未下载和下载失败的项合并到未下载中
+        records.waiting = [...records.failed, ...records.waiting];
+        records.failed  = [];
+
+        indexedLinks    = records.waiting;
+
     } else {
+
         let links = await getAllImagePageLink(detailsPageURL);
-        indexedLinks = [...links.entries()];
+
+        records.waiting = [...links.entries()];
+        
+        indexedLinks = records.waiting;
     }
 
     let event = downloadAll(indexedLinks, saveDir, threads, downloadOptions);
 
-    if(USER_CONFIG['download']['failuresLog'] === true) {
-
-        let fails = [];
-    
-        event.on('fail', (err, info) => {
-            fails.push({...info, error: err.message});
-        });
-    
-        event.on('done', function() {
-            if(fails.length === 0) {
-                fs.existsSync(failsLogPath) && fs.unlinkSync(failsLogPath);
-            } else {
-                let flogStream = fs.createWriteStream(failsLogPath);
-                flogStream.end(JSON.stringify(fails));
-            }
-        });
+    function saveLog() {
+        fs.writeFileSync(downloadLogPath, JSON.stringify(records));
     }
+
+    event.on('fail', (err, info) => {
+
+        records.failed.push([info.index, info.url]);
+
+        // 从等待下载列表中移除
+        records.waiting = records.waiting.filter(([index, link]) => index != info.index);
+
+        USER_CONFIG['download']['downloadLog'] === true && saveLog();
+    });
+
+    event.on('download', info => {
+
+        records.downloaded.push([info.index, info.url]);
+
+        // 从等待下载列表中移除
+        records.waiting = records.waiting.filter(([index, link]) => index != info.index);
+        
+        USER_CONFIG['download']['downloadLog'] === true && saveLog();
+    });
+
+    event.on('done', function() {
+        if(records.failed.length === 0) {
+            fs.existsSync(downloadLogPath) && fs.unlinkSync(downloadLogPath);
+        } else {
+            USER_CONFIG['download']['downloadLog'] === true && saveLog();
+        }
+    });
 
     return event;
 }
