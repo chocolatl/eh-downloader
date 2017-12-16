@@ -1,7 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const http = require('http');
-const {URL} = require('url');
 const EventEmitter = require('events');
 
 const request = require('request');
