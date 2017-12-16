@@ -242,6 +242,8 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
 
 function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
 
+    indexedLinks = cloneDeep(indexedLinks);
+
     let evo = new EventEmitter();
 
     let total = indexedLinks.length;
