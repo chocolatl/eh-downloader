@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
 
-const request = require('request');
 const {JSDOM} = require("jsdom");
 const yaml = require('js-yaml');
 const deepAssign = require('deep-assign');
@@ -49,20 +48,17 @@ function downloadFile(url, path, userOptions) {
     return downloadFile(url, path, userOptions);
 }
 
-function getRequestResponse(url, userOptions = {}) {
+function requestResponse(url, userOptions) {
+
+    const requestResponse = require('./lib/request-response');
 
     userOptions = deepAssign({
         headers: {
             'User-Agent': USER_CONFIG['download']['userAgent']
-        },
-        followRedirect: false
+        }
     }, cloneDeep(userOptions));
 
-    return new Promise(function(resolve, reject) {
-        request.get(url, userOptions).on('response', response => {
-            return resolve(response);
-        }).on('error', reject);
-    });
+    return requestResponse(url, userOptions);
 }
 
 function cookieString(cookiesObj) {
@@ -195,7 +191,7 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
 
     if(downloadURL === originalURL) {
 
-        let response = await getRequestResponse(downloadURL, options);
+        let response = await requestResponse(downloadURL, options);
 
         if(response.statusCode !== 302) {
             throw new Error('Status code is not 302 found.');
