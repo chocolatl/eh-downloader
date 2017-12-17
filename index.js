@@ -58,6 +58,10 @@ function requestResponse(url, userOptions) {
         }
     }, cloneDeep(userOptions));
 
+    if(USER_CONFIG['download']['proxyHTML'] === true) {
+        userOptions.agent = new SocksProxyAgent(USER_CONFIG['download']['proxy']);
+    }
+    
     return requestResponse(url, userOptions);
 }
 
