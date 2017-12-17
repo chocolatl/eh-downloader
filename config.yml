@@ -29,6 +29,19 @@ download:
   # 如果下载成功完成，download.json 文件会被自动删除
   downloadLog: true
 
+  # 如果存在代理，可以在下面填入代理地址，目前仅支持SOCKS(5)代理
+  # 这是一个使用ShadowSocks的填写示例："socks5://127.0.0.1:1080"
+  # 在填写代理地址后，可以设置 proxyHTML 和 proxyFile 来指定需要通过代理的内容
+  proxy: ""
+
+  # 解析网页时是否通过代理
+  # 设置为 true 前必须正确设置 proxy 的值
+  proxyHTML: false
+
+  # 下载文件时是否通过代理
+  # 设置为 true 前必须正确设置 proxy 的值
+  proxyFile: false
+
   # 用户代理字符串
   userAgent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.75 Safari/537.36"
 

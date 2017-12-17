@@ -9,6 +9,7 @@ const deepAssign = require('deep-assign');
 const mkdirp = require('mkdirp');
 const sanitize = require("sanitize-filename");
 const cloneDeep = require('clone-deep');
+const SocksProxyAgent = require('socks-proxy-agent');
 
 const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
@@ -24,6 +25,10 @@ function requestHTML(url, userOptions) {
         }
     }, cloneDeep(userOptions));
     
+    if(USER_CONFIG['download']['proxyHTML'] === true) {
+        userOptions.agent = new SocksProxyAgent(USER_CONFIG['download']['proxy']);
+    }
+
     return requestHTML(url, userOptions);
 }
 
@@ -36,6 +41,10 @@ function downloadFile(url, path, userOptions) {
             'User-Agent': USER_CONFIG['download']['userAgent']
         }
     }, cloneDeep(userOptions));
+
+    if(USER_CONFIG['download']['proxyFile'] === true) {
+        userOptions.agent = new SocksProxyAgent(USER_CONFIG['download']['proxy']);
+    }
 
     return downloadFile(url, path, userOptions);
 }
