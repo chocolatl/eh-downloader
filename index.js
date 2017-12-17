@@ -65,11 +65,11 @@ function cookieString(cookiesObj) {
     return Object.entries(cookiesObj).map(([k, v]) => `${k}=${v}`).join('; ');
 }
 
-function isLogin(cookiesObj) {
+function isLoginSuccessful(cookiesObj) {
     return requestHTML('https://e-hentai.org/home.php', {headers: {
         Cookie: cookieString(cookiesObj)
     }}).then(html => {
-        return html.includes('Image Limits');   // 通过页面是否包含"Image Limits"字符串判断是否登录
+        return html.includes('Image Limits');   // 通过home页面是否包含"Image Limits"字符串判断是否登录
     });
 }
 
@@ -304,7 +304,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
         throw new Error('Can not download original because you are not logged in.');
     }
 
-    if(fullLoginField === true && await isLogin(LOGIN_COOKIES) === false) {
+    if(fullLoginField === true && await isLoginSuccessful(LOGIN_COOKIES) === false) {
         throw new Error('Login Faild.');
     }
 
