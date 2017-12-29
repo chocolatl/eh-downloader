@@ -72,7 +72,7 @@ function cookieString(cookiesObj) {
 function isLoginSuccessful(cookiesObj) {
     return requestHTML('https://e-hentai.org/home.php', {headers: {
         Cookie: cookieString(cookiesObj)
-    }}).then(html => {
+    }}).then(({body: html}) => {
         return html.includes('Image Limits');   // 通过home页面是否包含"Image Limits"字符串判断是否登录
     });
 }
@@ -80,7 +80,7 @@ function isLoginSuccessful(cookiesObj) {
 function getGalleryTitle(detailsPageURL) {
 
     // cookie: 'nw=1' 用来跳过某些画廊出现的 Content Warning
-    return requestHTML(detailsPageURL, {headers: {Cookie: 'nw=1'}}).then(html => {
+    return requestHTML(detailsPageURL, {headers: {Cookie: 'nw=1'}}).then(({body: html}) => {
 
         let {window: {document}} = new JSDOM(html);
 
@@ -98,7 +98,7 @@ function getAllImagePageLink(detailsPageURL) {
     detailsPageURL = detailsPageURL.split('?')[0];
 
     // cookie: 'nw=1' 用来跳过某些画廊出现的 Content Warning
-    return requestHTML(detailsPageURL, {headers: {Cookie: 'nw=1'}}).then(html => {
+    return requestHTML(detailsPageURL, {headers: {Cookie: 'nw=1'}}).then(({body: html}) => {
 
         let {window: {document}} = new JSDOM(html);
 
@@ -125,7 +125,7 @@ function getAllImagePageLink(detailsPageURL) {
 
         function getImageLinks(pageLink) {
 
-            return requestHTML(pageLink, {headers: {Cookie: 'nw=1'}}).then(html => {
+            return requestHTML(pageLink, {headers: {Cookie: 'nw=1'}}).then(({body: html}) => {
 
                 let {window: {document}} = new JSDOM(html);
 
@@ -148,7 +148,7 @@ function getAllImagePageLink(detailsPageURL) {
 
 function getImagePageInfo(imagePageURL) {
 
-    return requestHTML(imagePageURL).then(html => {
+    return requestHTML(imagePageURL).then(({body: html}) => {
 
         let {window: {document}} = new JSDOM(html);
         
