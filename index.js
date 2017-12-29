@@ -48,23 +48,6 @@ function downloadFile(url, path, userOptions) {
     return downloadFile(url, path, userOptions);
 }
 
-function requestResponse(url, userOptions) {
-
-    const requestResponse = require('./lib/request-response');
-
-    userOptions = deepAssign({
-        headers: {
-            'User-Agent': USER_CONFIG['download']['userAgent']
-        }
-    }, cloneDeep(userOptions));
-
-    if(USER_CONFIG['download']['proxyHTML'] === true) {
-        userOptions.agent = new SocksProxyAgent(USER_CONFIG['download']['proxy']);
-    }
-    
-    return requestResponse(url, userOptions);
-}
-
 function cookieString(cookiesObj) {
     return Object.entries(cookiesObj).map(([k, v]) => `${k}=${v}`).join('; ');
 }
@@ -195,7 +178,8 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
 
     if(downloadURL === originalURL) {
 
-        let response = await requestResponse(downloadURL, options);
+        // 使用followRedirect阻止跳转，获取302指向的下载地址
+        let {response} = await requestHTML(downloadURL, Object.assign(cloneDeep(options), {followRedirect: false}));
 
         if(response.statusCode !== 302) {
             throw new Error('Status code is not 302 found.');
