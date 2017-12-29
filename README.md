@@ -25,3 +25,4 @@ request模块貌似并没有提供read timeout的选项，现在临时的解决�
 - [x] 保存下载进度记录
 - [x] 使用进度记录继续下载
 - [x] 通过SOCKS(5)代理下载
+- [ ] 对exhentai的支持
