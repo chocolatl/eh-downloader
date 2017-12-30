@@ -12,6 +12,8 @@ const SocksProxyAgent = require('socks-proxy-agent');
 
 const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
+const FULL_LOGIN_FIELD  = Boolean(USER_CONFIG['login']['__cfduid'] && USER_CONFIG['login']['ipb_member_id'] && USER_CONFIG['login']['ipb_pass_hash']);
+const LOGIN_COOKIES_STR = FULL_LOGIN_FIELD ? cookieString(USER_CONFIG['login']) : undefined;
 
 function requestHTML(url, userOptions) {
 
@@ -52,9 +54,9 @@ function cookieString(cookiesObj) {
     return Object.entries(cookiesObj).map(([k, v]) => `${k}=${v}`).join('; ');
 }
 
-function isLoginSuccessful(cookiesObj) {
+function isLoginSuccessful(cookieStr) {
     return requestHTML('https://e-hentai.org/home.php', {headers: {
-        Cookie: cookieString(cookiesObj)
+        Cookie: cookieStr
     }}).then(({body: html}) => {
         return html.includes('Image Limits');   // 通过home页面是否包含"Image Limits"字符串判断是否登录
     });
@@ -285,14 +287,11 @@ function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
 
 async function downloadGallery(detailsPageURL, saveDir) {
 
-    const LOGIN_COOKIES = USER_CONFIG['login'];
-    let fullLoginField = Boolean(LOGIN_COOKIES['__cfduid'] && LOGIN_COOKIES['ipb_member_id'] && LOGIN_COOKIES['ipb_pass_hash']);
-
-    if(fullLoginField === false && USER_CONFIG['download']['original'] === true) {
+    if(FULL_LOGIN_FIELD === false && USER_CONFIG['download']['original'] === true) {
         throw new Error('Can not download original because you are not logged in.');
     }
 
-    if(fullLoginField === true && await isLoginSuccessful(LOGIN_COOKIES) === false) {
+    if(FULL_LOGIN_FIELD === true && await isLoginSuccessful(LOGIN_COOKIES_STR) === false) {
         throw new Error('Login Faild.');
     }
 
@@ -323,8 +322,8 @@ async function downloadGallery(detailsPageURL, saveDir) {
         headers: {}
     }
 
-    if(fullLoginField) {
-        downloadOptions.headers.Cookie = cookieString(LOGIN_COOKIES);
+    if(FULL_LOGIN_FIELD) {
+        downloadOptions.headers.Cookie = LOGIN_COOKIES_STR;
     }
     
 
