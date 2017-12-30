@@ -12,7 +12,10 @@ const SocksProxyAgent = require('socks-proxy-agent');
 
 const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
+// 判断三个登录必填字段是否存在
 const FULL_LOGIN_FIELD  = Boolean(USER_CONFIG['login']['__cfduid'] && USER_CONFIG['login']['ipb_member_id'] && USER_CONFIG['login']['ipb_pass_hash']);
+
+// 如果必填字段存在，将登录配置中的所有字段加入Cookie
 const LOGIN_COOKIES_STR = FULL_LOGIN_FIELD ? cookieString(USER_CONFIG['login']) : undefined;
 
 function requestHTML(url, userOptions) {

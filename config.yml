@@ -47,9 +47,13 @@ download:
 
 login:
 
-  # 在浏览器登录后获取以下三个cookie字段的值并填入下方
+  # 在浏览器成功登录E站后获取以下三个cookie的值并填入下方
   # 当以下三个字段都不为空时会自动登录并验证是否登录成功
   # 如果登录验证失败会发出警告并直接退出程序
   __cfduid: ""
   ipb_member_id: ""
   ipb_pass_hash: ""
+
+  # 在浏览器成功登录里站(exhentai)后，获取以下cookie的值并填入下方
+  # 如果仅是登录下载表站(e-hentai)的Gallery，可以不填写下面的字段
+  igneous: ""
