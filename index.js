@@ -26,6 +26,18 @@ function requestHTML(url, userOptions) {
         }
     }, cloneDeep(userOptions));
     
+    // 登录字段配置完整且请求的域名是E站域名时，向Cookie头中添加登录Cookie
+    // 注：e-hentai 和 exhentai 共用相同的登录Cookie
+    // 注：下载图片的地址（IP）并不是E站地址，所以不需要E站的登录Cookie信息
+    if(FULL_LOGIN_FIELD && (url.includes('e-hentai') || url.includes('exhentai'))) {
+        userOptions.headers = userOptions.headers || {};
+        if(!userOptions.headers.Cookie) {
+            userOptions.headers.Cookie = LOGIN_COOKIES_STR;
+        } else {
+            userOptions.headers.Cookie = userOptions.headers.Cookie + '; ' + LOGIN_COOKIES_STR;
+        }
+    }
+
     if(USER_CONFIG['download']['proxyHTML'] === true) {
         userOptions.agent = new SocksProxyAgent(USER_CONFIG['download']['proxy']);
     }
@@ -54,10 +66,8 @@ function cookieString(cookiesObj) {
     return Object.entries(cookiesObj).map(([k, v]) => `${k}=${v}`).join('; ');
 }
 
-function isLoginSuccessful(cookieStr) {
-    return requestHTML('https://e-hentai.org/home.php', {headers: {
-        Cookie: cookieStr
-    }}).then(({body: html}) => {
+function isLoginSuccessful() {
+    return requestHTML('https://e-hentai.org/home.php').then(({body: html}) => {
         return html.includes('Image Limits');   // 通过home页面是否包含"Image Limits"字符串判断是否登录
     });
 }
@@ -191,17 +201,10 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
         downloadURL = response.headers.location;
     }
 
-
-    // 下载文件的地址并不是E站地址，所以不需要E站的登录Cookie信息
-    // 所以下载文件使用去除了Cookie的配置选项以确保登录信息不泄露
-    let noCookiesOptions = cloneDeep(options);
-    delete noCookiesOptions.headers.cookie;
-    delete noCookiesOptions.headers.Cookie;
-
     do {
         try {
 
-            await downloadFile(downloadURL, savePath, noCookiesOptions);
+            await downloadFile(downloadURL, savePath, options);
 
         } catch (err) {
 
@@ -226,7 +229,7 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
 
         // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
         let {imageURL} =  await getImagePageInfo(reloadURL);
-        await downloadFile(imageURL, savePath, noCookiesOptions);
+        await downloadFile(imageURL, savePath, options);
 
     } else if(lastErr !== null) {
 
@@ -291,7 +294,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
         throw new Error('Can not download original because you are not logged in.');
     }
 
-    if(FULL_LOGIN_FIELD === true && await isLoginSuccessful(LOGIN_COOKIES_STR) === false) {
+    if(FULL_LOGIN_FIELD === true && await isLoginSuccessful() === false) {
         throw new Error('Login Faild.');
     }
 
@@ -321,11 +324,6 @@ async function downloadGallery(detailsPageURL, saveDir) {
         original: USER_CONFIG['download']['original'],
         headers: {}
     }
-
-    if(FULL_LOGIN_FIELD) {
-        downloadOptions.headers.Cookie = LOGIN_COOKIES_STR;
-    }
-    
 
     let downloadLogPath = path.join(saveDir, 'download.json');
 
