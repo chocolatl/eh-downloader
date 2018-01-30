@@ -359,6 +359,10 @@ async function downloadGallery(detailsPageURL, saveDir) {
 
     let event = downloadAll(indexedLinks, saveDir, threads, downloadOptions);
 
+    // 返回对象中添加下载目录路径以及目录名
+    event.dirPath = saveDir;
+    event.dirName = title;
+
     function saveLog() {
         fs.writeFileSync(downloadLogPath, JSON.stringify(records));
     }
