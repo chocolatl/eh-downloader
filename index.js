@@ -376,15 +376,10 @@ async function downloadGallery(detailsPageURL, saveDir) {
     }
 
     if(fs.existsSync(downloadLogPath) === true && CONFIG['download']['downloadLog'] === true) {
-
         let rc = JSON.parse(fs.readFileSync(downloadLogPath));
-
-        // 将上次未下载和下载失败的项合并到未下载中
-        records.waiting.push(...rc.failed, ...rc.waiting);
+        records.waiting.push(...rc.failed, ...rc.waiting);  // 将上次未下载和下载失败的项合并到未下载中
         records.downloaded.push(...rc.downloaded);
-
     } else {
-        
         let links = await getAllImagePageLink(detailsPageURL);
         records.waiting.push(...links.entries());
     }
