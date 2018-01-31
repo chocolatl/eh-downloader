@@ -396,36 +396,18 @@ async function downloadGallery(detailsPageURL, saveDir) {
     event.dirPath = dirPath;
     event.dirName = dirName;
 
-    function saveLog() {
-        fs.writeFileSync(downloadLogPath, JSON.stringify(records));
+    function moveWaitingItemTo(to, info) {
+        records[to].push([info.index, info.url]);
+        records.waiting = records.waiting.filter(([index]) => index != info.index);   // 从等待下载列表中移除
+        CONFIG['download']['downloadLog'] === true && fs.writeFileSync(downloadLogPath, JSON.stringify(records));   // 保存记录
     }
 
-    event.on('fail', (err, info) => {
+    event.on('fail', (err, info) => moveWaitingItemTo('failed', info));
+    event.on('download', info => moveWaitingItemTo('downloaded', info));
 
-        records.failed.push([info.index, info.url]);
-
-        // 从等待下载列表中移除
-        records.waiting = records.waiting.filter(([index, link]) => index != info.index);
-
-        CONFIG['download']['downloadLog'] === true && saveLog();
-    });
-
-    event.on('download', info => {
-
-        records.downloaded.push([info.index, info.url]);
-
-        // 从等待下载列表中移除
-        records.waiting = records.waiting.filter(([index, link]) => index != info.index);
-        
-        CONFIG['download']['downloadLog'] === true && saveLog();
-    });
-
+    // 下载完成且错误队列为空，删除download.json
     event.on('done', function() {
-        if(records.failed.length === 0) {
-            fs.existsSync(downloadLogPath) && fs.unlinkSync(downloadLogPath);
-        } else {
-            CONFIG['download']['downloadLog'] === true && saveLog();
-        }
+        records.failed.length === 0 && fs.existsSync(downloadLogPath) && fs.unlinkSync(downloadLogPath);
     });
 
     return event;
