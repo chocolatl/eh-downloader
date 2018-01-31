@@ -316,7 +316,9 @@ async function downloadGallery(detailsPageURL, saveDir) {
     }
 
     saveDir = path.join(saveDir, title);
-    if(fs.existsSync(saveDir) === false) {
+    if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
+        throw new Error(saveDir + ' is not a directory.');
+    } else if(fs.existsSync(saveDir) === false) {
         mkdirp.sync(saveDir);
     }
 
