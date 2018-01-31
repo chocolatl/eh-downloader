@@ -1,7 +1,7 @@
 const {downloadGallery} = require('./index.js');
 
 let durl  = process.argv[2];
-let dpath = process.argv[3];
+let dpath = process.argv[3] || '.';
 
 downloadGallery(durl, dpath).then(ev => {
     ev.on('download', info => {
