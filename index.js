@@ -318,6 +318,35 @@ function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
     return evo;
 }
 
+// 在saveDir路径下根据Gallery的标题创建目录，返回创建的目录名和路径
+// 如果saveDir路径不存在时会被递归创建目录
+async function createGalleryDir(detailsPageURL, saveDir) {
+    
+    function isFilePath(path) {
+        if(fs.existsSync(path) === true && fs.lstatSync(path).isDirectory() === false) {
+            throw new Error(path + ' is not a directory.');
+        }
+    }
+    
+    isFilePath(saveDir);
+
+    let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
+    let title = sanitize(CONFIG['download']['jtitle'] === true && jtitle.trim() ? jtitle : ntitle) || 'untitled';
+
+    saveDir = path.join(saveDir, title);
+
+    isFilePath(saveDir);
+
+    if(fs.existsSync(saveDir) === false) {
+        mkdirp.sync(saveDir);
+    }
+
+    return {
+        dirName: title,
+        dirPath: saveDir
+    }
+}
+
 async function downloadGallery(detailsPageURL, saveDir) {
 
     if(FULL_LOGIN_FIELD === false && CONFIG['download']['original'] === true) {
@@ -328,20 +357,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
         throw new Error('Login Faild.');
     }
 
-    if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
-        throw new Error(saveDir + ' is not a directory.');
-    }
-
-    let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
-
-    let title = sanitize(CONFIG['download']['jtitle'] === true && jtitle.trim() !== '' ? jtitle : ntitle) || 'untitled';
-
-    saveDir = path.join(saveDir, title);
-    if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
-        throw new Error(saveDir + ' is not a directory.');
-    } else if(fs.existsSync(saveDir) === false) {
-        mkdirp.sync(saveDir);
-    }
+    let {dirName, dirPath} = await createGalleryDir(detailsPageURL, saveDir);
 
     let threads = CONFIG['download']['threads'];
 
@@ -351,7 +367,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
         original: CONFIG['download']['original']
     }
 
-    let downloadLogPath = path.join(saveDir, 'download.json');
+    let downloadLogPath = path.join(dirPath, 'download.json');
 
     let records = {
         downloaded: [],
@@ -374,11 +390,11 @@ async function downloadGallery(detailsPageURL, saveDir) {
     }
 
     let indexedLinks = records.waiting;
-    let event = downloadAll(indexedLinks, saveDir, threads, downloadOptions);
+    let event = downloadAll(indexedLinks, dirPath, threads, downloadOptions);
 
     // 返回对象中添加下载目录路径以及目录名
-    event.dirPath = saveDir;
-    event.dirName = title;
+    event.dirPath = dirPath;
+    event.dirName = dirName;
 
     function saveLog() {
         fs.writeFileSync(downloadLogPath, JSON.stringify(records));
