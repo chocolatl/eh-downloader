@@ -308,12 +308,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
 
     let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
 
-    let title = USER_CONFIG['download']['jtitle'] === true && jtitle.trim() !== '' ? jtitle : ntitle;
-    
-    title = sanitize(title);
-    if(title.trim() === '') {
-        throw new Error('Empty Title.');
-    }
+    let title = sanitize(USER_CONFIG['download']['jtitle'] === true && jtitle.trim() !== '' ? jtitle : ntitle) || 'untitled';
 
     saveDir = path.join(saveDir, title);
     if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
