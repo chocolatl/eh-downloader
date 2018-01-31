@@ -348,8 +348,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
     let downloadOptions = {
         retries: CONFIG['download']['retries'],
         nlretry: CONFIG['download']['nlretry'],
-        original: CONFIG['download']['original'],
-        headers: {}
+        original: CONFIG['download']['original']
     }
 
     let downloadLogPath = path.join(saveDir, 'download.json');
