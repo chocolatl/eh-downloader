@@ -250,8 +250,9 @@ function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
     let total = indexedLinks.length;
     let processed = 0;
 
+    // 传入空数组的情况
     if(total === 0) {
-        process.nextTick(_ => evo.emit('done'));
+        process.nextTick(_ => evo.emit('done'));    // 在下一个Tick再触发事件，直接触发会在evo返回给调用者之前触发
     }
 
     for(let i = 0; i < threads; i++) {
