@@ -331,8 +331,6 @@ async function downloadGallery(detailsPageURL, saveDir) {
 
     let downloadLogPath = path.join(saveDir, 'download.json');
 
-    let indexedLinks = [];
-
     let records = {
         downloaded: [],
         failed: [],
@@ -340,24 +338,20 @@ async function downloadGallery(detailsPageURL, saveDir) {
     }
 
     if(fs.existsSync(downloadLogPath) === true && USER_CONFIG['download']['downloadLog'] === true) {
-        
-        records = JSON.parse(fs.readFileSync(downloadLogPath));
+
+        let rc = JSON.parse(fs.readFileSync(downloadLogPath));
 
         // 将上次未下载和下载失败的项合并到未下载中
-        records.waiting = [...records.failed, ...records.waiting];
-        records.failed  = [];
-
-        indexedLinks    = records.waiting;
+        records.waiting.push(...rc.failed, ...rc.waiting);
+        records.downloaded.push(...rc.downloaded);
 
     } else {
-
-        let links = await getAllImagePageLink(detailsPageURL);
-
-        records.waiting = [...links.entries()];
         
-        indexedLinks = records.waiting;
+        let links = await getAllImagePageLink(detailsPageURL);
+        records.waiting.push(...links.entries());
     }
 
+    let indexedLinks = records.waiting;
     let event = downloadAll(indexedLinks, saveDir, threads, downloadOptions);
 
     // 返回对象中添加下载目录路径以及目录名
