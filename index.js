@@ -10,22 +10,48 @@ const sanitize = require("sanitize-filename");
 const cloneDeep = require('clone-deep');
 const SocksProxyAgent = require('socks-proxy-agent');
 
-const USER_CONFIG  = yaml.load(fs.readFileSync('config.yml', 'utf8'));
+let DEFAULT_CONFIG = {
+    download: {
+        threads: 3,
+        retries: 1,
+        nlretry: true,
+        original: false,
+        jtitle: true,
+        downloadLog: true,
+        proxy: '',
+        proxyHTML: false,
+        proxyFile: false,
+        userAgent: ''
+    },
+    login: {
+        __cfduid: '',
+        ipb_member_id: '',
+        ipb_pass_hash: '',
+        igneous: ''
+    }
+};
+
+let USER_CONFIG = yaml.load(fs.readFileSync('config.yml', 'utf8'));
+
+// CONFIG
+const CONFIG = deepAssign({}, DEFAULT_CONFIG, USER_CONFIG);
+
+USER_CONFIG = DEFAULT_CONFIG = null;
 
 // 判断三个登录必填字段是否存在
-const FULL_LOGIN_FIELD  = Boolean(USER_CONFIG['login']['__cfduid'] && USER_CONFIG['login']['ipb_member_id'] && USER_CONFIG['login']['ipb_pass_hash']);
+const FULL_LOGIN_FIELD = Boolean(CONFIG['login']['__cfduid'] && CONFIG['login']['ipb_member_id'] && CONFIG['login']['ipb_pass_hash']);
 
 // 如果必填字段存在，将登录配置中的所有字段加入Cookie
-const LOGIN_COOKIES_STR = FULL_LOGIN_FIELD ? cookieString(USER_CONFIG['login']) : undefined;
+const LOGIN_COOKIES_STR = FULL_LOGIN_FIELD ? cookieString(CONFIG['login']) : undefined;
 
 function requestHTML(url, userOptions) {
 
     const requestHTML = require('./lib/request-html');
 
     userOptions = deepAssign({
-        retries: USER_CONFIG['download']['retries'],
+        retries: CONFIG['download']['retries'],
         headers: {
-            'User-Agent': USER_CONFIG['download']['userAgent']
+            'User-Agent': CONFIG['download']['userAgent']
         }
     }, cloneDeep(userOptions));
     
@@ -41,8 +67,8 @@ function requestHTML(url, userOptions) {
         }
     }
 
-    if(USER_CONFIG['download']['proxyHTML'] === true) {
-        userOptions.agent = new SocksProxyAgent(USER_CONFIG['download']['proxy']);
+    if(CONFIG['download']['proxyHTML'] === true) {
+        userOptions.agent = new SocksProxyAgent(CONFIG['download']['proxy']);
     }
 
     return requestHTML(url, userOptions);
@@ -54,12 +80,12 @@ function downloadFile(url, path, userOptions) {
 
     userOptions = deepAssign({
         headers: {
-            'User-Agent': USER_CONFIG['download']['userAgent']
+            'User-Agent': CONFIG['download']['userAgent']
         }
     }, cloneDeep(userOptions));
 
-    if(USER_CONFIG['download']['proxyFile'] === true) {
-        userOptions.agent = new SocksProxyAgent(USER_CONFIG['download']['proxy']);
+    if(CONFIG['download']['proxyFile'] === true) {
+        userOptions.agent = new SocksProxyAgent(CONFIG['download']['proxy']);
     }
 
     return downloadFile(url, path, userOptions);
@@ -294,7 +320,7 @@ function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
 
 async function downloadGallery(detailsPageURL, saveDir) {
 
-    if(FULL_LOGIN_FIELD === false && USER_CONFIG['download']['original'] === true) {
+    if(FULL_LOGIN_FIELD === false && CONFIG['download']['original'] === true) {
         throw new Error('Can not download original because you are not logged in.');
     }
 
@@ -308,7 +334,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
 
     let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
 
-    let title = sanitize(USER_CONFIG['download']['jtitle'] === true && jtitle.trim() !== '' ? jtitle : ntitle) || 'untitled';
+    let title = sanitize(CONFIG['download']['jtitle'] === true && jtitle.trim() !== '' ? jtitle : ntitle) || 'untitled';
 
     saveDir = path.join(saveDir, title);
     if(fs.existsSync(saveDir) === true && fs.lstatSync(saveDir).isDirectory() === false) {
@@ -317,12 +343,12 @@ async function downloadGallery(detailsPageURL, saveDir) {
         mkdirp.sync(saveDir);
     }
 
-    let threads = USER_CONFIG['download']['threads'];
+    let threads = CONFIG['download']['threads'];
 
     let downloadOptions = {
-        retries: USER_CONFIG['download']['retries'],
-        nlretry: USER_CONFIG['download']['nlretry'],
-        original: USER_CONFIG['download']['original'],
+        retries: CONFIG['download']['retries'],
+        nlretry: CONFIG['download']['nlretry'],
+        original: CONFIG['download']['original'],
         headers: {}
     }
 
@@ -334,7 +360,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
         waiting: []
     }
 
-    if(fs.existsSync(downloadLogPath) === true && USER_CONFIG['download']['downloadLog'] === true) {
+    if(fs.existsSync(downloadLogPath) === true && CONFIG['download']['downloadLog'] === true) {
 
         let rc = JSON.parse(fs.readFileSync(downloadLogPath));
 
@@ -366,7 +392,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
         // 从等待下载列表中移除
         records.waiting = records.waiting.filter(([index, link]) => index != info.index);
 
-        USER_CONFIG['download']['downloadLog'] === true && saveLog();
+        CONFIG['download']['downloadLog'] === true && saveLog();
     });
 
     event.on('download', info => {
@@ -376,14 +402,14 @@ async function downloadGallery(detailsPageURL, saveDir) {
         // 从等待下载列表中移除
         records.waiting = records.waiting.filter(([index, link]) => index != info.index);
         
-        USER_CONFIG['download']['downloadLog'] === true && saveLog();
+        CONFIG['download']['downloadLog'] === true && saveLog();
     });
 
     event.on('done', function() {
         if(records.failed.length === 0) {
             fs.existsSync(downloadLogPath) && fs.unlinkSync(downloadLogPath);
         } else {
-            USER_CONFIG['download']['downloadLog'] === true && saveLog();
+            CONFIG['download']['downloadLog'] === true && saveLog();
         }
     });
 
