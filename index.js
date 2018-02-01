@@ -397,10 +397,6 @@ async function downloadGallery(detailsPageURL, saveDir) {
     let indexedLinks = records.waiting;
     let event = downloadAll(indexedLinks, dirPath, threads, downloadOptions);
 
-    // 返回对象中添加下载目录路径以及目录名
-    event.dirPath = dirPath;
-    event.dirName = dirName;
-
     function moveWaitingItemTo(to, info) {
         records[to].push([info.index, info.url]);
         records.waiting = records.waiting.filter(([index]) => index != info.index);   // 从等待下载列表中移除
@@ -415,6 +411,10 @@ async function downloadGallery(detailsPageURL, saveDir) {
         records.failed.length === 0 && fs.existsSync(downloadLogPath) && fs.unlinkSync(downloadLogPath);
     });
 
+    // 返回对象中添加下载目录路径以及目录名
+    event.dirPath = dirPath;
+    event.dirName = dirName;
+    
     return event;
 }
 
