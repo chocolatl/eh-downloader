@@ -193,7 +193,7 @@ function getImagePageInfo(imagePageURL) {
     });
 }
 
-async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
+async function downloadIamge(imagePageURL, dirPath, fileName, options = {}) {
 
     let lastErr  = null;
 
@@ -208,7 +208,7 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
     delete options.nlretry;
     delete options.original;
 
-    let savePath = path.join(saveDir, fileName);
+    let savePath = path.join(dirPath, fileName);
 
     let {imageURL, reloadURL, originalURL} = await getImagePageInfo(imagePageURL);
 
@@ -267,7 +267,7 @@ async function downloadIamge(imagePageURL, saveDir, fileName, options = {}) {
 }
 
 
-function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
+function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
 
     indexedLinks = cloneDeep(indexedLinks);
 
@@ -303,7 +303,7 @@ function downloadAll(indexedLinks, saveDir, threads = 3, downloadOptions) {
             }
         }
 
-        downloadIamge(url, saveDir, fileName, downloadOptions).then(function() {
+        downloadIamge(url, dirPath, fileName, downloadOptions).then(function() {
 
             evo.emit('download', {fileName, index, url});
             handle();
