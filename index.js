@@ -17,6 +17,7 @@ let DEFAULT_CONFIG = {
         nlretry: true,
         original: false,
         jtitle: true,
+        originalFileName: false,
         downloadLog: true,
         proxy: '',
         proxyHTML: false,
@@ -186,14 +187,17 @@ function getImagePageInfo(imagePageURL) {
         let reloadCode = /onclick=\"return nl\('(.*)'\)\"/.exec(document.getElementById('loadfail').outerHTML)[1];
         let reloadURL  = imagePageURL + (imagePageURL.indexOf('?') > -1 ? '&' : '?') + 'nl=' + reloadCode;
 
+        let imageInfoStr = document.querySelectorAll('#i2 > div')[1].textContent;
+        let fileName = imageInfoStr.split(' :: ')[0];
+        
         return {
-            imageURL, nextURL, reloadURL, originalURL
+            imageURL, nextURL, reloadURL, originalURL, fileName
         };
 
     });
 }
 
-async function downloadIamge(imagePageURL, dirPath, fileName, options = {}) {
+async function downloadIamge(imagePageInfo, dirPath, fileName, options = {}) {
 
     let lastErr  = null;
 
@@ -210,7 +214,7 @@ async function downloadIamge(imagePageURL, dirPath, fileName, options = {}) {
 
     let savePath = path.join(dirPath, fileName);
 
-    let {imageURL, reloadURL, originalURL} = await getImagePageInfo(imagePageURL);
+    let {imageURL, reloadURL, originalURL} = imagePageInfo;
 
     // 判断下载原图还是压缩图
     let downloadOriginal = original === true && originalURL !== null;
@@ -290,7 +294,6 @@ function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
         if(indexedLinks.length === 0) return;
         
         let [index, url] = indexedLinks.shift();
-        let fileName = index + '.jpg';
 
         function handle() {
 
@@ -303,15 +306,22 @@ function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
             }
         }
 
-        downloadIamge(url, dirPath, fileName, downloadOptions).then(function() {
+        getImagePageInfo(url).then(info => {
 
-            evo.emit('download', {fileName, index, url});
-            handle();
+            let fileName = CONFIG['download']['originalFileName'] === false ? index + '.jpg' : info.fileName;
 
-        }).catch(function(err) {
-
-            evo.emit('fail', err, {fileName, index, url});
-            handle();
+            return downloadIamge(info, dirPath, fileName, downloadOptions).then(function() {
+    
+                evo.emit('download', {fileName, index, url});
+                handle();
+    
+            }).catch(err => {
+    
+                evo.emit('fail', err, {fileName, index, url});
+                handle();
+            });
+        }).catch(err => {
+            evo.emit('error', err);
         });
     }
 
