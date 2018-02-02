@@ -308,7 +308,7 @@ function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
 
         getImagePageInfo(url).then(info => {
 
-            let fileName = CONFIG['download']['originalFileName'] === false ? index + '.jpg' : info.fileName;
+            let fileName = CONFIG['download']['originalFileName'] === false ? index + '.jpg' : sanitize(info.fileName);
 
             return downloadIamge(info, dirPath, fileName, downloadOptions).then(function() {
     
