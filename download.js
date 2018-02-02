@@ -2,8 +2,24 @@ const {downloadGallery} = require('./index.js');
 
 let durl  = process.argv[2];
 let dpath = process.argv[3] || '.';
+let drange = process.argv[4];
 
-downloadGallery(durl, dpath).then(ev => {
+let range = undefined;
+if(drange) {
+    range = [];
+    for(let s of drange.split(',')) {
+        if(s.includes('-')) {
+            let [l, r] = s.split('-');
+            for(let i = +l; i <= +r; i++) {
+                range.push(i);
+            }
+        } else {
+            range.push(+s)
+        }
+    }
+}
+
+downloadGallery(durl, dpath, range).then(ev => {
     ev.on('download', info => {
         console.log(`${info.fileName} Download Successful.`);
     });
