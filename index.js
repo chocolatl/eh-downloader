@@ -357,7 +357,20 @@ async function createGalleryDir(detailsPageURL, saveDir) {
     }
 }
 
-async function downloadGallery(detailsPageURL, saveDir) {
+// 获取所有图片页面的链接，并转换为[index, link]的形式，index为从0开始编号的数字，用于指定链接的顺序
+// 可以传入range参数如：[0, 3, 4]，表示仅返回index为0, 3, 4的项：[[0, link0], [3, link3], [4, link4]]
+function getImageIndexedLinks(detailsPageURL, range = undefined) {
+    return getAllImagePageLink(detailsPageURL).then(links => {
+        let indexedLinks = [...links.entries()];
+        if(Array.isArray(range)) {
+            return indexedLinks.filter(([index]) => range.includes(index));
+        } else {
+            return indexedLinks;
+        }
+    });
+}
+
+async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
 
     if(FULL_LOGIN_FIELD === false && CONFIG['download']['original'] === true) {
         throw new Error('Can not download original because you are not logged in.');
@@ -381,8 +394,7 @@ async function downloadGallery(detailsPageURL, saveDir) {
 
     if(CONFIG['download']['downloadLog'] === false) {
 
-        let links = await getAllImagePageLink(detailsPageURL);
-        let indexedLinks = [...links.entries()];
+        let indexedLinks = getImageIndexedLinks(detailsPageURL, range);
         event = downloadAll(indexedLinks, dirPath, threads, downloadOptions);
 
     } else {
@@ -400,8 +412,8 @@ async function downloadGallery(detailsPageURL, saveDir) {
             records.waiting.push(...rc.failed, ...rc.waiting);  // 将上次未下载和下载失败的项合并到未下载中
             records.downloaded.push(...rc.downloaded);
         } else {
-            let links = await getAllImagePageLink(detailsPageURL);
-            records.waiting.push(...links.entries());
+            let indexedLinks = await getImageIndexedLinks(detailsPageURL, range);
+            records.waiting.push(...indexedLinks);
         }
     
         let indexedLinks = records.waiting;
