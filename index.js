@@ -1,3 +1,4 @@
+module.exports = function() {
 const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
@@ -441,6 +442,8 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
     return event;
 }
 
-module.exports = {
-    downloadGallery
+return downloadGallery;
+
+// 文件顶部 module.exports = function() {
+// ... 的闭合大括号
 }
