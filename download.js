@@ -1,4 +1,7 @@
-const downloadGallery = require('./index.js')();
+const fs = require('fs');
+const yaml = require('js-yaml');
+const USER_CONFIG = yaml.load(fs.readFileSync('config.yml', 'utf8'));
+const downloadGallery = require('./index.js')(USER_CONFIG);
 
 let durl  = process.argv[2];
 let dpath = process.argv[3] || '.';

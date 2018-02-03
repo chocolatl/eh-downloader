@@ -1,10 +1,9 @@
-module.exports = function() {
+module.exports = function(USER_CONFIG = {}) {
 const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
 
 const {JSDOM} = require("jsdom");
-const yaml = require('js-yaml');
 const deepAssign = require('deep-assign');
 const mkdirp = require('mkdirp');
 const sanitize = require("sanitize-filename");
@@ -32,8 +31,6 @@ let DEFAULT_CONFIG = {
         igneous: ''
     }
 };
-
-let USER_CONFIG = yaml.load(fs.readFileSync('config.yml', 'utf8'));
 
 // CONFIG
 const CONFIG = deepAssign({}, DEFAULT_CONFIG, USER_CONFIG);
@@ -444,6 +441,6 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
 
 return downloadGallery;
 
-// 文件顶部 module.exports = function() {
+// 文件顶部 module.exports = function(USER_CONFIG = {}) {
 // ... 的闭合大括号
 }
