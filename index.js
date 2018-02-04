@@ -399,7 +399,7 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
 
     if(CONFIG['download']['downloadLog'] === false) {
 
-        let indexedLinks = getImageIndexedLinks(detailsPageURL, range);
+        let indexedLinks = await getImageIndexedLinks(detailsPageURL, range);
         event = downloadAll(indexedLinks, dirPath, threads, downloadOptions);
 
     } else {
