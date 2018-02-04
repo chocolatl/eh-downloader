@@ -280,8 +280,14 @@ function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
 
     // 传入空数组的情况
     if(total === 0) {
-        process.nextTick(_ => evo.emit('done'));    // 在下一个Tick再触发事件，直接触发会在evo返回给调用者之前触发
-        // 由于'done'事件存在异步触发的情况，所以在监听该事件的回调函数内一定要确保捕获可能出现的异常，否则会作为全局异常被抛出
+        // 在下一个Tick再触发事件，直接触发会在evo返回给调用者之前触发
+        process.nextTick(_ => {
+            try {
+                evo.emit('done');
+            } catch(err) {
+                evo.emit('error', err);
+            }
+        });
     }
 
     for(let i = 0; i < threads; i++) {
