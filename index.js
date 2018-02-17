@@ -3,10 +3,10 @@ const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
 
-const {JSDOM} = require("jsdom");
+const {JSDOM} = require('jsdom');
 const deepAssign = require('deep-assign');
 const mkdirp = require('mkdirp');
-const sanitize = require("sanitize-filename");
+const sanitize = require('sanitize-filename');
 const cloneDeep = require('clone-deep');
 const SocksProxyAgent = require('socks-proxy-agent');
 
