@@ -51,6 +51,55 @@ Windows PowerShell
   $ explorer $config
 ```
 
+## 作为项目依赖使用
+
+```
+$ npm install --save https://github.com/Chocolatl/ehentai-downloader.git
+```
+
+```js
+const CONFIG = {
+  download: {
+    threads: 5,
+    // ...
+  }
+  login: {
+    // ...
+  }
+}   // 可用的配置项请参照config.yml
+
+const downloadGallery = require('ehentai-downloader')(CONFIG);
+
+downloadGallery('https://e-hentai.org/g/1008611/abcdefghij/', 'D:\\doujinshi').then(ev => {
+  
+  console.log(ev.dirPath);  // 下载位置
+  console.log(ev.dirName);  // 目录名
+
+  ev.on('download', info => {
+    // 一张图片下载成功
+  });
+
+  ev.on('fail', (err, info) => {
+    // 一张图片下载失败
+  });
+
+  ev.on('progress', (current, length) => {
+    // 下载进度
+  });
+
+  ev.on('done', _ => {
+    // 下载结束
+  });
+
+  ev.on('error', err => {
+    // 下载过程中出现异常
+  });
+
+}).catch(err => {
+  // 解析过程中出现异常
+});
+```
+
 ## 已知问题
 
 在下载图片时，如果与下载服务器成功建立连接，但服务器一直不返回主体数据，这时程序会一直等待
