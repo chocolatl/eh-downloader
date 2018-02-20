@@ -1,7 +1,8 @@
+#!/usr/bin/env node
 const fs = require('fs');
 const yaml = require('js-yaml');
-const USER_CONFIG = yaml.load(fs.readFileSync(`${__dirname}/config.yml`, 'utf8'));
-const downloadGallery = require('./index.js')(USER_CONFIG);
+const USER_CONFIG = yaml.load(fs.readFileSync(`${__dirname}/../config.yml`, 'utf8'));
+const downloadGallery = require('../index.js')(USER_CONFIG);
 
 let [url, path = '.', range = undefined] = process.argv.slice(2);
 
