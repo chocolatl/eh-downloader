@@ -1,22 +1,55 @@
-E站本子下载脚本，自用
+E站本子下载脚本
 
-## 使用方式
+## 作为全局命令使用
 
-执行：`node ./download <url> [path]`
+```
+$ npm install -g https://github.com/Chocolatl/ehentai-downloader.git
+```
 
-参数:
+### 完整下载
 
-- url：本子详情页面的URL，不要漏了协议名
+```
+$ eget <url> [path]
 
-- path：保存的文件夹路径，路径不存在会自动创建，默认为当前工作目录
+  参数
+  url  本子详情页面的URL
+  path 存放目录路径，不存在会自动创建，默认为当前工作目录
+
+  示例
+    $ eget https://e-hentai.org/g/1008611/abcdefghij/
+    $ eget https://e-hentai.org/g/1008611/abcdefghij/ D:\
+```
 
 ### 范围下载
 
-执行：`node ./download <url> <path> <range>`
+```
+$ eget <url> <path> <range>
 
-- range：`0,1,3-6`表示下载第0、1、3、4、5、6张图片，传入不存在的序号会被忽略：`1-100000`这样可以下载第一张开始到最后一张
+  参数
+  range 下载范围
+
+  示例
+    $ eget https://e-hentai.org/g/1008611/abcdefghij/ . 0-2,7,8,9
+    $ eget https://e-hentai.org/g/1008611/abcdefghij/ D:\ 120-140
+    $ eget https://e-hentai.org/g/1008611/abcdefghij/ D:\ 20-10000
+```
 
 注意：`downloadLog`选项优先级更高，如果开启`downloadLog`且下载目录存在`download.json`，范围下载会被忽略
+
+### 配置文件
+
+配置文件[config.yml](https://github.com/Chocolatl/ehentai-downloader/blob/master/config.yml)中包含所有下载配置项，及配置项的详细说明
+
+`eget --config`命令打印配置文件路径，通过以下方式编辑配置文件：
+
+```
+Linux
+  $ vi $(eget --config)
+
+Windows PowerShell
+  $ $config = eget --config
+  $ explorer $config
+```
 
 ## 已知问题
 
