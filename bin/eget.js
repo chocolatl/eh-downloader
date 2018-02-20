@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 const fs = require('fs');
-const opn = require('opn');
 const yaml = require('js-yaml');
-const CONFIG_FILE = `${__dirname}/../config.yml`;
+const CONFIG_FILE = require('path').normalize(`${__dirname}/../config.yml`);
 const USER_CONFIG = yaml.load(fs.readFileSync(CONFIG_FILE, 'utf8'));
 const downloadGallery = require('../index.js')(USER_CONFIG);
 
 let [url, path = '.', range = undefined] = process.argv.slice(2);
 
 if(url === '--config') {
-  return opn(CONFIG_FILE);
+  console.log(CONFIG_FILE);
+  return 0;
 }
 
 if(range) {
