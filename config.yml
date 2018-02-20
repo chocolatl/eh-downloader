@@ -22,7 +22,7 @@ download:
   # 有些非法字符会被过滤，所以创建的文件夹标题未必和网页上的一致
   jtitle: true
 
-  # 是否使用图片原文件名，为 false 时图片会被命名为 0.jpg, 1.jpg...
+  # 是否使用图片原文件名，为 false 时图片会按序号命名为 0.jpg, 1.jpg...
   originalFileName: false
 
   # 是否保存图片下载进度记录

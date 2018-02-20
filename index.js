@@ -313,7 +313,8 @@ function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
 
         getImagePageInfo(url).then(info => {
 
-            let fileName = CONFIG['download']['originalFileName'] === false ? index + '.jpg' : sanitize(info.fileName);
+            let filenameExtension = /\.[^.]*$/.exec(info.fileName)[0].trim();   // 获取源文件后缀，"a.b.gif" -> ".gif"
+            let fileName = CONFIG['download']['originalFileName'] === false ? index + filenameExtension : sanitize(info.fileName);
 
             return downloadIamge(info, dirPath, fileName, downloadOptions).then(function() {
     
