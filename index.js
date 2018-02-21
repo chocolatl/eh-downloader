@@ -107,9 +107,11 @@ function getGalleryTitle(detailsPageURL) {
 
         let {window: {document}} = new JSDOM(html);
 
+        // ntitle一定存在，jtitle可能为空字符串
+        // jtitle不存在时返回 undefined
         return {
             ntitle: document.getElementById('gn').textContent,
-            jtitle: document.getElementById('gj').textContent
+            jtitle: document.getElementById('gj').textContent.trim() || undefined
         }
 
     });
@@ -383,8 +385,8 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
         throw new Error('Login Faild.');
     }
 
-    let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
-    let title = sanitize(CONFIG['download']['jtitle'] === true && jtitle.trim() ? jtitle : ntitle) || 'untitled';
+    let {ntitle, jtitle = ntitle} = await getGalleryTitle(detailsPageURL);  // jtitle不存在时赋值为ntitle
+    let title = sanitize(CONFIG['download']['jtitle'] === true ? jtitle : ntitle) || 'untitled';
 
     let {dirName, dirPath} = createGalleryDir(detailsPageURL, saveDir, title);
 
