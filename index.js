@@ -336,7 +336,7 @@ function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
 
 // 在saveDir路径下根据Gallery的标题创建目录，返回创建的目录名和路径
 // 如果saveDir路径不存在时会被递归创建目录
-async function createGalleryDir(detailsPageURL, saveDir) {
+function createGalleryDir(detailsPageURL, saveDir, title) {
     
     function isFilePath(path) {
         if(fs.existsSync(path) === true && fs.lstatSync(path).isDirectory() === false) {
@@ -345,9 +345,6 @@ async function createGalleryDir(detailsPageURL, saveDir) {
     }
     
     isFilePath(saveDir);
-
-    let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
-    let title = sanitize(CONFIG['download']['jtitle'] === true && jtitle.trim() ? jtitle : ntitle) || 'untitled';
 
     saveDir = path.join(saveDir, title);
 
@@ -386,7 +383,10 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
         throw new Error('Login Faild.');
     }
 
-    let {dirName, dirPath} = await createGalleryDir(detailsPageURL, saveDir);
+    let {jtitle, ntitle} = await getGalleryTitle(detailsPageURL);
+    let title = sanitize(CONFIG['download']['jtitle'] === true && jtitle.trim() ? jtitle : ntitle) || 'untitled';
+
+    let {dirName, dirPath} = createGalleryDir(detailsPageURL, saveDir, title);
 
     let threads = CONFIG['download']['threads'];
 
