@@ -6,6 +6,13 @@ E站本子下载脚本
 $ npm install -g https://github.com/Chocolatl/ehentai-downloader.git
 ```
 
+或
+
+```
+$ git clone https://github.com/Chocolatl/ehentai-downloader.git
+$ npm install -g ehentai-downloader
+```
+
 ### 完整下载
 
 ```
