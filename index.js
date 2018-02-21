@@ -17,7 +17,7 @@ let DEFAULT_CONFIG = {
         nlretry: true,
         original: false,
         jtitle: true,
-        originalFileName: false,
+        fileName: '{index.0}',
         downloadLog: true,
         proxy: '',
         proxyHTML: false,
@@ -271,7 +271,7 @@ async function downloadIamge(imagePageInfo, dirPath, fileName, options = {}) {
 }
 
 
-function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
+function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downloadOptions) {
 
     indexedLinks = cloneDeep(indexedLinks);
 
@@ -315,8 +315,20 @@ function downloadAll(indexedLinks, dirPath, threads = 3, downloadOptions) {
 
         getImagePageInfo(url).then(info => {
 
-            let filenameExtension = /\.[^.]*$/.exec(info.fileName)[0].trim();   // 获取源文件后缀，"a.b.gif" -> ".gif"
-            let fileName = CONFIG['download']['originalFileName'] === false ? index + filenameExtension : sanitize(info.fileName);
+            let filenameExtension = /\.[^.]*$/.exec(info.fileName)[0].trim();   // 获取原文件名的后缀，"a.b.gif" -> ".gif"
+            let filenameNoExt = info.fileName.replace(new RegExp(filenameExtension + '$'), '');     // 没有后缀的原文件名
+
+            // 解析图片保存的文件名
+            let fileName = CONFIG.download.fileName
+                .replace(/\{jtitle\}/g, jtitle)
+                .replace(/\{ntitle\}/g, ntitle)
+                .replace(/\{filename\}/g, filenameNoExt)
+                .replace(/\{index\.0\}/g, index + 0)
+                .replace(/\{index\.1\}/g, index + 1)
+                .replace(/\{index\.0\.4\}/g, ('0000' + (index + 0)).substr(-4,4))
+                .replace(/\{index\.1\.4\}/g, ('0000' + (index + 1)).substr(-4,4));
+
+            fileName = sanitize(fileName) + filenameExtension;
 
             return downloadIamge(info, dirPath, fileName, downloadOptions).then(function() {
     
@@ -403,7 +415,7 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
     if(CONFIG['download']['downloadLog'] === false) {
 
         let indexedLinks = await getImageIndexedLinks(detailsPageURL, range);
-        event = downloadAll(indexedLinks, dirPath, threads, downloadOptions);
+        event = downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads, downloadOptions);
 
     } else {
 
@@ -425,7 +437,7 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
         }
     
         let indexedLinks = records.waiting;
-        event = downloadAll(indexedLinks, dirPath, threads, downloadOptions);
+        event = downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads, downloadOptions);
     
         function moveWaitingItemTo(to, info) {
             records[to].push([info.index, info.url]);
