@@ -19,8 +19,8 @@ $ npm install -g ehentai-downloader
 $ eget <url> [path]
 
   参数
-  url  本子详情页面的URL
-  path 存放目录路径，不存在会自动创建，默认为当前工作目录
+    url  本子详情页面的URL
+    path 存放目录路径，不存在会自动创建，默认为当前工作目录
 
   示例
     $ eget https://e-hentai.org/g/1008611/abcdefghij/
@@ -33,7 +33,7 @@ $ eget <url> [path]
 $ eget <url> <path> <range>
 
   参数
-  range 下载范围
+    range 下载范围
 
   示例
     $ eget https://e-hentai.org/g/1008611/abcdefghij/ . 0-2,7,8,9
