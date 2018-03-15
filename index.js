@@ -342,6 +342,7 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
             });
         }).catch(err => {
             evo.emit('error', err);
+            handle();
         });
     }
 
