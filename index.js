@@ -9,6 +9,7 @@ const mkdirp = require('mkdirp');
 const sanitize = require('sanitize-filename');
 const cloneDeep = require('clone-deep');
 const SocksProxyAgent = require('socks-proxy-agent');
+const Qnext = require('qnext');
 
 let DEFAULT_CONFIG = {
     download: {
@@ -270,18 +271,16 @@ async function downloadIamge(imagePageInfo, dirPath, fileName, options = {}) {
     }
 }
 
-
 function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downloadOptions) {
 
-    indexedLinks = cloneDeep(indexedLinks);
-
+    let qnext = new Qnext(threads);
     let evo = new EventEmitter();
 
-    let total = indexedLinks.length;
+    let length = indexedLinks.length;
     let processed = 0;
 
     // 传入空数组的情况
-    if(total === 0) {
+    if(length === 0) {
         // 在下一个Tick再触发事件，直接触发会在evo返回给调用者之前触发
         process.nextTick(_ => {
             try {
@@ -292,28 +291,9 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
         });
     }
 
-    for(let i = 0; i < threads; i++) {
-        downloadOne();
-    }
-
-    function downloadOne() {
-
-        if(indexedLinks.length === 0) return;
-        
-        let [index, url] = indexedLinks.shift();
-
-        function handle() {
-
-            evo.emit('progress', ++processed, total);
-
-            downloadOne();
-
-            if(processed === total) {
-                evo.emit('done');
-            }
-        }
-
-        getImagePageInfo(url).then(info => {
+    let tasks = indexedLinks.map(([index, url]) => () => {
+        return (async function() {
+            let info = await getImagePageInfo(url);
 
             let filenameExtension = /\.[^.]*$/.exec(info.fileName)[0].trim();   // 获取原文件名的后缀，"a.b.gif" -> ".gif"
             let filenameNoExt = info.fileName.replace(new RegExp(filenameExtension + '$'), '');     // 没有后缀的原文件名
@@ -330,21 +310,24 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
 
             fileName = sanitize(fileName) + filenameExtension;
 
-            return downloadIamge(info, dirPath, fileName, downloadOptions).then(function() {
-    
+            await downloadIamge(info, dirPath, fileName, downloadOptions).then(() => {
                 evo.emit('download', {fileName, index, url});
-                handle();
-    
             }).catch(err => {
-    
                 evo.emit('fail', err, {fileName, index, url});
-                handle();
             });
-        }).catch(err => {
-            evo.emit('error', err);
-            handle();
-        });
+            
+            evo.emit('progress', ++processed, length);
+            
+        })().catch(err => evo.emit('error', err));  // 发生异常
+    });
+
+    for(let task of tasks) {
+        qnext.add(task);
     }
+
+    qnext.on('empty', function() {
+        evo.emit('done');
+    });
 
     return evo;
 }
