@@ -315,10 +315,10 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
             }).catch(err => {
                 evo.emit('fail', err, {fileName, index, url});
             });
-            
+
             evo.emit('progress', ++processed, length);
             
-        })().catch(err => evo.emit('error', err));  // 发生异常
+        })().catch(err => evo.emit('error', err, {index, url}));  // 发生异常
     });
 
     for(let task of tasks) {
@@ -429,6 +429,7 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
             fs.writeFileSync(downloadLogPath, JSON.stringify(records));   // 保存记录
         }
     
+        event.on('error', (err, info) => moveWaitingItemTo('failed', info));
         event.on('fail', (err, info) => moveWaitingItemTo('failed', info));
         event.on('download', info => moveWaitingItemTo('downloaded', info));
     
