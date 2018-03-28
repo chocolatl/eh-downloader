@@ -49,7 +49,6 @@ function requestHTML(url, userOptions) {
     const requestHTML = require('./lib/request-html');
 
     userOptions = deepAssign({
-        retries: CONFIG['download']['retries'],
         headers: {
             'User-Agent': CONFIG['download']['userAgent']
         }
@@ -191,16 +190,12 @@ function getImagePageInfo(imagePageURL) {
 
 async function downloadIamge(imagePageInfo, dirPath, fileName, options = {}) {
 
-    let lastErr  = null;
-
     // 深拷贝传入选项
     options = cloneDeep(options);
 
-    let retries  = options.retries || 0,
-        nlretry  = options.nlretry || false,
+    let nlretry  = options.nlretry || false,
         original = options.original || false;
 
-    delete options.retries;
     delete options.nlretry;
     delete options.original;
 
@@ -226,31 +221,15 @@ async function downloadIamge(imagePageInfo, dirPath, fileName, options = {}) {
         downloadURL = response.headers.location;
     }
 
-    do {
-        try {
-
-            await downloadFile(downloadURL, savePath, options);
-
-        } catch (err) {
-
-            lastErr = err;
-
-            // 等待1000ms
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // 重试
-            continue;
-        }
-
-        // 没有捕捉到错误说明下载成功，跳出循环
-        lastErr = null;
-        break;
-
-    } while(retries--);
-
+    let lastErr = null;
+    try {
+        await downloadFile(downloadURL, savePath, options);
+    } catch (err) {
+        lastErr = err;
+    }
 
     // 当downloadOriginal为ture时也跳过使用"fails loading"重试的步骤，下面的重试步骤仅针对于下载非原图
-    if(lastErr !== null && nlretry === true && downloadOriginal === false) {
+    if(lastErr && nlretry === true && downloadOriginal === false) {
 
         // 模拟点击"Click here if the image fails loading"链接，重新尝试下载当前图片
         let {imageURL} =  await getImagePageInfo(reloadURL);
@@ -377,7 +356,6 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
     let threads = CONFIG['download']['threads'];
 
     let downloadOptions = {
-        retries: CONFIG['download']['retries'],
         nlretry: CONFIG['download']['nlretry'],
         original: CONFIG['download']['original']
     }
