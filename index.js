@@ -310,15 +310,12 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
 
             fileName = sanitize(fileName) + filenameExtension;
 
-            await downloadIamge(info, dirPath, fileName, downloadOptions).then(() => {
-                evo.emit('download', {fileName, index, url});
-            }).catch(err => {
-                evo.emit('fail', err, {index, url});
-            });
+            await downloadIamge(info, dirPath, fileName, downloadOptions);
 
+            evo.emit('download', {fileName, index, url});
             evo.emit('progress', ++processed, length);
             
-        })().catch(err => evo.emit('error', err, {index, url}));  // 发生异常
+        })().catch(err => evo.emit('fail', err, {index, url}));  // 发生异常
     });
 
     for(let task of tasks) {
