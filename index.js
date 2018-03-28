@@ -118,58 +118,49 @@ function getGalleryTitle(detailsPageURL) {
     });
 }
 
-function getAllImagePageLink(detailsPageURL) {
+async function getAllImagePageLink(detailsPageURL) {
 
     // 防止URL带上页数的参数,以确保是详情页的第一页
     detailsPageURL = detailsPageURL.split('?')[0];
 
     // cookie: 'nw=1' 用来跳过某些画廊出现的 Content Warning
-    return requestHTML(detailsPageURL, {headers: {Cookie: 'nw=1'}}).then(({body: html}) => {
+    let {body: html} = await requestHTML(detailsPageURL, {headers: {Cookie: 'nw=1'}})
+    let document = new JSDOM(html).window.document;
 
-        let {window: {document}} = new JSDOM(html);
+    // pageLinks存放分页导航器中的链接元素，里面可能有上一页、下一页的链接，而且当页面过多时，
+    // 分页导航器会用"..."按钮来省略部分分页链接，所以不能直接使用分页导航器来取得所有分页的链接
+    let pageLinks = document.querySelector('.ptt').querySelectorAll('a');
+    let pages = [];
+    
+    if(pageLinks.length === 1) {
 
-        // pageLinks存放分页导航器中的链接元素，里面可能有上一页、下一页的链接，而且当页面过多时，
-        // 分页导航器会用"..."按钮来省略部分分页链接，所以不能直接使用分页导航器来取得所有分页的链接
-        let pageLinks = document.querySelector('.ptt').querySelectorAll('a');
-        let pages = [];
-        
-        if(pageLinks.length === 1) {
+        // 只有一页的情况
+        pages = [pageLinks[0].href];
 
-            // 只有一页的情况
-            pages = [pageLinks[0].href];
+    } else {
 
-        } else {
+        // 获取最后一页链接（跳过数组最后一项，因为是下一页链接
+        let lastPageLink = pageLinks[pageLinks.length - 2].href;
+        let lastPage = Number.parseInt(/p=(\d+)/.exec(lastPageLink)[1], 10);
 
-            // 获取最后一页链接（跳过数组最后一项，因为是下一页链接
-            let lastPageLink = pageLinks[pageLinks.length - 2].href;
-            let lastPage = Number.parseInt(/p=(\d+)/.exec(lastPageLink)[1], 10);
-
-            for(let i = 0; i <= lastPage; i++) {
-                pages.push(lastPageLink.replace(/p=(\d+)/, 'p=' + i));
-            }
+        for(let i = 0; i <= lastPage; i++) {
+            pages.push(lastPageLink.replace(/p=(\d+)/, 'p=' + i));
         }
+    }
 
-        function getImageLinks(pageLink) {
+    async function getImageLinks(pageLink) {
+        let {body: html} = await requestHTML(pageLink, {headers: {Cookie: 'nw=1'}});
+        let document = new JSDOM(html).window.document;
+        let imagePageLinks = document.querySelectorAll('#gdt > .gdtm a');
 
-            return requestHTML(pageLink, {headers: {Cookie: 'nw=1'}}).then(({body: html}) => {
+        return Array.from(imagePageLinks).map(el => el.href);
+    }
 
-                let {window: {document}} = new JSDOM(html);
+    let results = await Promise.all(pages.map(getImageLinks));
+    let imagePages = [];
+    results.forEach(arr => imagePages.push(...arr));
 
-                let imagePageLinks = document.querySelectorAll('#gdt > .gdtm a');
-
-                return Array.from(imagePageLinks).map(el => el.href);
-            });
-        }
-
-        return Promise.all(pages.map(getImageLinks)).then(results => {
-
-            let imagePages = [];
-
-            results.forEach(arr => imagePages.push(...arr));
-
-            return imagePages;
-        });
-    });
+    return imagePages;
 }
 
 function getImagePageInfo(imagePageURL) {
