@@ -247,7 +247,6 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
     let evo = new EventEmitter();
 
     let length = indexedLinks.length;
-    let processed = 0;
 
     // 任务相关信息
     evo.length = length;    // 总长度
@@ -286,8 +285,7 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
             await downloadIamge(info, dirPath, fileName, downloadOptions);
 
             evo.emit('download', {fileName, index, url});
-            evo.emit('progress', ++processed, length);
-            
+
         })().catch(err => evo.emit('fail', err, {index, url}));  // 发生异常
     });
 

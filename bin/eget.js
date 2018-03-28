@@ -37,10 +37,6 @@ downloadGallery(url, path, range).then(ev => {
         console.log(`${info.fileName} Download Success.`);
     });
     
-    ev.on('progress', (current, length) => {
-        console.log(`Download Progress: ${current} / ${length}.`);
-    });
-    
     ev.on('done', _ => {
         console.log('done.');
     });
