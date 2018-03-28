@@ -395,7 +395,8 @@ async function downloadGallery(detailsPageURL, saveDir, range = undefined) {
             fs.writeFileSync(downloadLogPath, JSON.stringify(records));   // 保存记录
         }
     
-        event.on('error', (err, info) => moveWaitingItemTo('failed', info));
+        // error事件发生时，对应下载项既不会加入failed队列也不会加入downloaded队列，而是直接丢弃
+        // 所以如果发生error事件，那么本次下载结果的正确性与完整性将无法得到保证
         event.on('fail', (err, info) => moveWaitingItemTo('failed', info));
         event.on('download', info => moveWaitingItemTo('downloaded', info));
     

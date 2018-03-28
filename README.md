@@ -100,6 +100,7 @@ downloadGallery('https://e-hentai.org/g/1008611/abcdefghij/', 'D:\\doujinshi').t
 
   ev.on('error', err => {
     // 下载过程中出现异常
+    // 如果发生此事件，本次下载的完整性将无法保证
   });
 
 }).catch(err => {
