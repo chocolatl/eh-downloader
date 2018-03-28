@@ -249,6 +249,9 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
     let length = indexedLinks.length;
     let processed = 0;
 
+    // 任务相关信息
+    evo.length = length;    // 总长度
+
     // 传入空数组的情况
     if(length === 0) {
         // 在下一个Tick再触发事件，直接触发会在evo返回给调用者之前触发

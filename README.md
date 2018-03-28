@@ -81,6 +81,7 @@ downloadGallery('https://e-hentai.org/g/1008611/abcdefghij/', 'D:\\doujinshi').t
   
   console.log(ev.dirPath);  // 下载位置
   console.log(ev.dirName);  // 目录名
+  console.log(ev.length);   // 总长度
 
   ev.on('download', info => {
     // 一张图片下载成功
