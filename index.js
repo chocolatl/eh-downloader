@@ -313,7 +313,7 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
             await downloadIamge(info, dirPath, fileName, downloadOptions).then(() => {
                 evo.emit('download', {fileName, index, url});
             }).catch(err => {
-                evo.emit('fail', err, {fileName, index, url});
+                evo.emit('fail', err, {index, url});
             });
 
             evo.emit('progress', ++processed, length);
