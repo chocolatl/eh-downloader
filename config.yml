@@ -70,4 +70,4 @@ login:
 
   # 在浏览器成功登录里站(exhentai)后，获取以下cookie的值并填入下方
   # 如果仅是登录下载表站(e-hentai)的Gallery，可以不填写下面的字段
-  igneous: "7d4bc2fd7"
+  igneous: ""
