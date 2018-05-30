@@ -243,16 +243,13 @@ async function downloadIamge(imagePageInfo, dirPath, fileName, options = {}) {
 
 function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downloadOptions) {
 
-    let qnext = new Qnext(threads);
     let evo = new EventEmitter();
 
-    let length = indexedLinks.length;
-
     // 任务相关信息
-    evo.length = length;    // 总长度
+    evo.length = indexedLinks.length;    // 总长度
 
     // 传入空数组的情况
-    if(length === 0) {
+    if(indexedLinks.length === 0) {
         // 在下一个Tick再触发事件，直接触发会在evo返回给调用者之前触发
         process.nextTick(_ => {
             try {
@@ -262,41 +259,58 @@ function downloadAll(indexedLinks, dirPath, {jtitle, ntitle}, threads = 3, downl
             }
         });
     }
+    
+    (async () => {
+        let retries = CONFIG.download.retries;
+        let currentTasks = indexedLinks.slice();
 
-    let tasks = indexedLinks.map(([index, url]) => () => {
-        return (async function() {
-            let info = await getImagePageInfo(url);
+        do {
+            let qnext = new Qnext(threads);        
+            let tasks = currentTasks.map(([index, url]) => () => {
+                return (async function() {
+                    let info = await getImagePageInfo(url);
+        
+                    let filenameExtension = /\.[^.]*$/.exec(info.fileName)[0].trim();   // 获取原文件名的后缀，"a.b.gif" -> ".gif"
+                    let filenameNoExt = info.fileName.replace(new RegExp(filenameExtension + '$'), '');     // 没有后缀的原文件名
+        
+                    // 解析图片保存的文件名
+                    let fileName = CONFIG.download.fileName
+                        .replace(/\{jtitle\}/g, jtitle)
+                        .replace(/\{ntitle\}/g, ntitle)
+                        .replace(/\{filename\}/g, filenameNoExt)
+                        .replace(/\{index\.0\}/g, index + 0)
+                        .replace(/\{index\.1\}/g, index + 1)
+                        .replace(/\{index\.0\.4\}/g, ('0000' + (index + 0)).substr(-4,4))
+                        .replace(/\{index\.1\.4\}/g, ('0000' + (index + 1)).substr(-4,4));
+        
+                    fileName = sanitize(fileName) + filenameExtension;
+        
+                    await downloadIamge(info, dirPath, fileName, downloadOptions);
+        
+                    evo.emit('download', {fileName, index, url});
+        
+                })().catch(err => {   // 单个任务发生异常
+                    if(retries) {
+                        currentTasks.push([index, url]);
+                    } else {
+                        evo.emit('fail', err, {index, url})
+                    }
+                });
+            });
+    
+            currentTasks = [];  // 清空currentTasks
+        
+            for(let task of tasks) {
+                qnext.add(task);    // 将任务加入队列
+            }
+    
+            // 等待队列中所有任务完成
+            await new Promise(resolve => qnext.on('empty', resolve));
+    
+        } while(retries-- && currentTasks.length !== 0);
 
-            let filenameExtension = /\.[^.]*$/.exec(info.fileName)[0].trim();   // 获取原文件名的后缀，"a.b.gif" -> ".gif"
-            let filenameNoExt = info.fileName.replace(new RegExp(filenameExtension + '$'), '');     // 没有后缀的原文件名
-
-            // 解析图片保存的文件名
-            let fileName = CONFIG.download.fileName
-                .replace(/\{jtitle\}/g, jtitle)
-                .replace(/\{ntitle\}/g, ntitle)
-                .replace(/\{filename\}/g, filenameNoExt)
-                .replace(/\{index\.0\}/g, index + 0)
-                .replace(/\{index\.1\}/g, index + 1)
-                .replace(/\{index\.0\.4\}/g, ('0000' + (index + 0)).substr(-4,4))
-                .replace(/\{index\.1\.4\}/g, ('0000' + (index + 1)).substr(-4,4));
-
-            fileName = sanitize(fileName) + filenameExtension;
-
-            await downloadIamge(info, dirPath, fileName, downloadOptions);
-
-            evo.emit('download', {fileName, index, url});
-
-        })().catch(err => evo.emit('fail', err, {index, url}));  // 发生异常
-    });
-
-    for(let task of tasks) {
-        qnext.add(task);
-    }
-
-    qnext.on('empty', function() {
-        evo.emit('done');
-    });
-
+    })().then(() => evo.emit('done'));
+    
     return evo;
 }
 
