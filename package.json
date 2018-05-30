@@ -12,13 +12,13 @@
   "author": "chocolatl",
   "license": "MIT",
   "dependencies": {
-    "clone-deep": "^2.0.1",
+    "clone-deep": "^2.0.2",
     "deep-assign": "^2.0.0",
-    "js-yaml": "^3.10.0",
-    "jsdom": "^11.3.0",
+    "js-yaml": "^3.11.0",
+    "jsdom": "^11.11.0",
     "mkdirp": "^0.5.1",
     "qnext": "0.0.0",
-    "request": "^2.83.0",
+    "request": "^2.87.0",
     "sanitize-filename": "^1.6.1",
     "socks-proxy-agent": "^3.0.1"
   }
