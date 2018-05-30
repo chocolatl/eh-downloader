@@ -107,9 +107,7 @@ downloadGallery('https://e-hentai.org/g/1008611/abcdefghij/', 'D:\\doujinshi').t
 
 ## 已知问题
 
-在下载图片时，如果与下载服务器成功建立连接，但服务器一直不返回主体数据，这时程序会一直等待
-
-request模块貌似并没有提供read timeout的选项，现在临时的解决方案就是重启程序后继续下载
+该脚本在某大型局域网环境中即使正确配置[config.yml](https://github.com/Chocolatl/ehentai-downloader/blob/master/config.yml)中的`Proxy`选项可能依然无法使用，这时需要关闭`Proxy`配置并使用全局代理，如使用`Proxifier`
 
 ## TODO
 
