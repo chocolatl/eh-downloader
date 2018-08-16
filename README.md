@@ -13,6 +13,8 @@ $ git clone https://github.com/Chocolatl/ehentai-downloader.git
 $ npm install -g ehentai-downloader
 ```
 
+**注意：在Windows下请使用管理员身份运行PowerShell执行以上命令**
+
 ### 完整下载
 
 ```
